@@ -434,52 +434,52 @@ public class sdkClinetImpl implements sdkClinet {
 
     }
 
-//    private void picCutCate(Integer lUserID, Integer chanLong, String imgPath) {
-//        //图片质量
-//        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
-//        //设置图片分辨率
-//        jpeg.wPicSize = 0;
-//        //设置图片质量
-//        jpeg.wPicQuality = 0;
-//        IntByReference a = new IntByReference();
-//        //设置图片大小
-//        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
-//        File file = new File(imgPath);
-//        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
-//        log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
-//        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(lUserID, chanLong, jpeg, jpegBuffer, 1024 * 1024, a);
-//        log.info("-----------这里开始图片存入内存----------" + is);
-//        if (is) {
-//            /**
-//             * 该方式使用内存获取 但是读取有问题无法预览
-//             * linux下 可能有问题
-//             * */
-//            log.info("hksdk(抓图)-结果状态值(0表示成功):" + hCNetSDK.NET_DVR_GetLastError());
-//            byte[] array = jpegBuffer.array();
-//
-//            //存储到本地
-//            BufferedOutputStream outputStream = null;
-//            try {
-//                outputStream = new BufferedOutputStream(new FileOutputStream(file));
-//                outputStream.write(jpegBuffer.array(), 0, a.getValue());
-//                outputStream.flush();
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } finally {
-//                if (outputStream != null) {
-//                    try {
-//                        outputStream.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        } else {
-//            log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
-//        }
-//    }
+    public void picCutCate(Integer lUserID, Integer channelNum, String imgPath) {
+        //图片质量
+        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
+        //设置图片分辨率
+        jpeg.wPicSize = 0;
+        //设置图片质量
+        jpeg.wPicQuality = 0;
+        IntByReference a = new IntByReference();
+        //设置图片大小
+        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
+        File file = new File(imgPath);
+        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
+        log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
+        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(lUserID, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
+        log.info("-----------这里开始图片存入内存----------" + is);
+        if (is) {
+            /**
+             * 该方式使用内存获取 但是读取有问题无法预览
+             * linux下 可能有问题
+             * */
+            log.info("hksdk(抓图)-结果状态值(0表示成功):" + hCNetSDK.NET_DVR_GetLastError());
+            byte[] array = jpegBuffer.array();
+
+            //存储到本地
+            BufferedOutputStream outputStream = null;
+            try {
+                outputStream = new BufferedOutputStream(new FileOutputStream(file));
+                outputStream.write(jpegBuffer.array(), 0, a.getValue());
+                outputStream.flush();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
+        }
+    }
 
     /**
      * 设置预置点

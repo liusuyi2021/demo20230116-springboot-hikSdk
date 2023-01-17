@@ -84,4 +84,10 @@ public class sdkController {
         sdk.captureJPEGPicture(UserId,response);
         return response;
     }
+    @RequestMapping("/captureJPEGPicture1")
+    private String captureJPEGPicture1(Integer channelNum,String imagePath)
+    {
+        sdk.picCutCate(UserId,channelNum,imagePath);
+        return "图片保存成功";
+    }
 }

@@ -23,10 +23,9 @@
             <artifactId>jna</artifactId>
             <version>3.0.9</version>
         </dependency>
-        <!--海康录像机sdk官方提供jar包-->
         <dependency>
-            <groupId>com.qy</groupId>
-            <artifactId>examples</artifactId><!--需要在maven自行安装这个jar包-->
+            <groupId>net.java.examples</groupId>
+            <artifactId>examples</artifactId>
             <version>1.0.0</version>
         </dependency>
 
@@ -39,6 +38,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
     <build>

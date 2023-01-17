@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.domian.DVRLogin;
+import com.example.util.WaterMarkUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
@@ -416,8 +417,8 @@ public class sdkClinetImpl implements sdkClinet {
             response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())+".jpeg", "UTF-8"));
 
             outputStream = response.getOutputStream();
-//            LoginUser loginUser = LoginContext.me().getLoginUser();
-//            WaterMarkUtil.markImageByIO(loginUser.getAccount(),in,outputStream,null,"jpeg");
+           // LoginUser loginUser = LoginContext.me().getLoginUser();
+            WaterMarkUtil.markImageByIO("",in,outputStream,null,"jpeg");
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();

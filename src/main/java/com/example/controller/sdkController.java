@@ -33,10 +33,14 @@ public class sdkController {
     @RequestMapping("/login")
     private String loginIndex() {
         DVRLogin DVR = new DVRLogin();
-        DVR.setIp("112.98.126.2");
-        DVR.setPort((short) 28000);
+//        DVR.setIp("112.98.126.2");
+//        DVR.setPort((short) 28000);
+//        DVR.setUserName("admin");
+//        DVR.setPassword("ardkj12345");
+        DVR.setIp("192.168.1.104");
+        DVR.setPort((short) 8000);
         DVR.setUserName("admin");
-        DVR.setPassword("ardkj12345");
+        DVR.setPassword("xzx12345");
         UserId = sdk.login(DVR);
         System.out.println(UserId);
         return UserId.toString();

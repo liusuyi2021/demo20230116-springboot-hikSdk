@@ -722,7 +722,7 @@ public interface HCNetSDK extends Library {
 
     public static final int NET_DVR_GET_CMS_CFG = 2070;
     public static final int NET_DVR_SET_CMS_CFG = 2071;
-
+    public static final int NET_DVR_SET_INFRARECFG = 3308;//设置快球红外参数
     public static final int NET_DVR_GET_ALARM_INFO = 4193;  //获取报警事件数据
     /***************************DS9000新增命令(_V30) end *****************************/
 
@@ -3472,7 +3472,7 @@ DVR实现巡航数据结构
         public short wTransProtol;        //传输协议，0-TCP, 1-UDP, 2-MCAST
         public short wPassivePort;        //TCP,UDP时为TCP,UDP端口, MCAST时为MCAST端口
         public NET_DVR_IPADDR struMcastIP;        //TCP,UDP时无效, MCAST时为多播地址
-        public byte  byStreamType;  //数据播放模式：1- 实时流，2- 文件流
+        public byte byStreamType;  //数据播放模式：1- 实时流，2- 文件流
         public byte[] res = new byte[7];
     }
 /************************************多路解码器(end)***************************************/
@@ -3777,6 +3777,7 @@ DVR实现巡航数据结构
         public short wTiltPos;//垂直参数
         public short wZoomPos;//变倍参数
     }
+
     //球机位置信息
     public static class NET_DVR_PTZ_BASICPARAMCFG extends Structure {
         public short dwSize;//结构体大小
@@ -3790,6 +3791,7 @@ DVR实现巡航数据结构
         public short byPTZMotionTrack;//启用运动跟踪（锁定云台操作）：0- 默认（开启），1- 关闭
         public short byRes;//变倍参数
     }
+
     //球机范围信息
     public static class NET_DVR_PTZSCOPE extends Structure {
         public short wPanPosMin;//水平参数min
@@ -7187,7 +7189,7 @@ DVR实现巡航数据结构
         public byte byModelingStatus;// 建模状态
         public byte byLivenessDetectionStatus;//活体检测状态：0-保留，1-未知（检测失败），2-非真人人脸，3-真人人脸，4-未开启活体检测
         public byte cTimeDifferenceH;         /*与UTC的时差（小时），-12 ... +14， +表示东区,0xff无效*/
-        public byte cTimeDifferenceM;      	/*与UTC的时差（分钟），-30, 30, 45， +表示东区，0xff无效*/
+        public byte cTimeDifferenceM;        /*与UTC的时差（分钟），-30, 30, 45， +表示东区，0xff无效*/
         public byte byMask;                //抓拍图是否戴口罩，0-保留，1-未知，2-不戴口罩，3-戴口罩
         public byte bySmile;               //抓拍图是否微笑，0-保留，1-未知，2-不微笑，3-微笑
         public byte byContrastStatus;      //比对结果，0-保留，1-比对成功，2-比对失败
@@ -8974,6 +8976,14 @@ DVR实现巡航数据结构
         public byte[] byDevIP = new byte[16];
     }
 
+    public static class NET_DVR_INFRARE_CFG extends Structure {
+        public int dwSize;
+        public byte byIrControlMode;
+        public byte byIrBrightness;
+        public byte byIrSensitivity;
+        public byte[] byRes = new byte[65];
+
+    }
 
     public static class NET_DVR_CAMERAPARAMCFG_EX extends Structure {
         public int dwSize;
@@ -10044,8 +10054,11 @@ DVR实现巡航数据结构
     boolean NET_DVR_MatrixGetLoopDecChanInfo_V41(int lUserID, int dwDecChanNum, NET_DVR_MATRIX_LOOP_DECINFO_V41 lpOuter);
 
     boolean NET_DVR_MatrixSetLoopDecChanInfo_V41(int lUserID, int dwDecChanNum, NET_DVR_MATRIX_LOOP_DECINFO_V41 lpInter);
+
     int NET_DVR_MatrixStartPassiveDecode(int lUserID, int dwDecChanNum, Pointer lpPassiveMode);
+
     boolean NET_DVR_MatrixSendData(int lPassiveHandle, Pointer pSendBuf, int dwBufSize);
+
     boolean NET_DVR_MatrixStopPassiveDecode(int lPassiveHandle);
 
     //2007-12-22 增加支持接口 //18

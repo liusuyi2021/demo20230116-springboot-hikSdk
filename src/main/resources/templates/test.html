@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试页</title>
+    <script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+    <style type="text/css">
+        #imgcontainer {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #f00;
+        }
+    </style>
+</head>
+<body>
+<div><input id="up" type="button" value="上"/>
+    <input id="left" type="button" value="左"/>
+    <input id="down" type="button" value="下"/>
+    <input id="right" type="button" value="右"/>
+</div>
+<div><input id="controlZoomIn" type="button" value="变倍-"/>
+    <input id="controlZoomOut" type="button" value="变倍+"/>
+    <input id="controlFocusNear" type="button" value="变焦-"/>
+    <input id="controlFocusFar" type="button" value="变焦+"/>
+</div>
+<div><input id="setPreset" type="button" value="设置预置点"/>
+    <input id="gotoPreset" type="button" value="调用预置点"/>
+
+</div>
+<div>
+    <h6>p:
+        <input id="p" type="text"/>
+    </h6>
+    <h6>t:
+        <input id="t" type="text"/>
+    </h6>
+    <h6>z:
+        <input id="z" type="text"/>
+    </h6>
+    <input id="getPTZ" type="button" value="获取ptz"/>
+    <input id="setPTZ" type="button" value="设置ptz"/>
+</div>
+<div>
+    <input id="enableWiperPwron" type="button" value="开启雨刷"/>
+    <input id="enableDefogcfg" type="button" value="开启透雾"/>
+    <input id="disableDefogcfg" type="button" value="关闭透雾"/>
+    <input id="enableInfrarecfg" type="button" value="开启红外"/>
+</div>
+<div>
+    <input id="captureJPEGPicture" type="button" value="抓图"/>
+    <div id="imgcontainer"/>
+</div>
+
+</body>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: "../login",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    });
+    $("#up").click(function () {
+        $.ajax({
+            url: "../up?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#down").click(function () {
+        $.ajax({
+            url: "../down?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#left").click(function () {
+        $.ajax({
+            url: "../left?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#right").click(function () {
+        $.ajax({
+            url: "../right?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomIn").click(function () {
+        $.ajax({
+            url: "../controlZoomIn?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomOut").click(function () {
+        $.ajax({
+            url: "../controlZoomOut?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusNear").click(function () {
+        $.ajax({
+            url: "../controlFocusNear?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusFar").click(function () {
+        $.ajax({
+            url: "../controlFocusFar?channelNum=1&speed=8",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#setPreset").click(function () {
+        $.ajax({
+            url: "../setPreset?channelNum=1&presetIndex=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#gotoPreset").click(function () {
+        $.ajax({
+            url: "../gotoPreset?channelNum=1&presetIndex=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#getPTZ").click(function () {
+        $.ajax({
+            url: "../getPTZ?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+                    $("#p").val(data.wpanPos);
+                    $("#t").val(data.wtiltPos);
+                    $("#z").val(data.wzoomPos);
+            }
+        })
+    })
+
+    $("#setPTZ").click(function () {
+        var p = $('#p').val()*10;
+        var t = $('#t').val()*10;
+        var z = $('#z').val()*10;
+        console.log("../setPTZ?channelNum=1&p="+p+"&t="+t+"&z="+z)
+        $.ajax({
+            url: "../setPTZ?channelNum=1&p="+p+"&t="+t+"&z="+z,
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#enableWiperPwron").click(function () {
+        $.ajax({
+            url: "../enableWiperPwron?channelNum=1&speed=4",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#enableDefogcfg").click(function () {
+        $.ajax({
+            url: "../enableDefogcfg?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#disableDefogcfg").click(function () {
+        $.ajax({
+            url: "../disableDefogcfg?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#enableInfrarecfg").click(function () {
+        $.ajax({
+            url: "../enableInfrarecfg?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#captureJPEGPicture").click(function () {
+        var url = "http://localhost:8080/captureJPEGPicture";
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = "blob";
+        xhr.onload = function () {
+            if (this.status == 200) {
+                var blob = this.response;
+                var img = document.createElement("img");
+                img.style.width = "800px";
+                img.style.height = "600px";
+                img.onload = function (e) {
+                    window.URL.revokeObjectURL(img.src);
+                };
+                img.src = window.URL.createObjectURL(blob);
+                $("#imgcontainer").html(img);
+            }
+        }
+        xhr.send();
+    })
+</script>
+</html>

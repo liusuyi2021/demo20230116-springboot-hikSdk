@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.domian.DVRLogin;
+import com.example.domian.PTZ;
 import com.example.util.WaterMarkUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
@@ -9,8 +10,6 @@ import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.security.auth.login.LoginContext;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
@@ -19,8 +18,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.example.service.HCNetSDK.GOTO_PRESET;
-import static com.example.service.HCNetSDK.SET_PRESET;
+import static com.example.service.HCNetSDK.*;
 
 /**
  * @ClassName: initSdk
@@ -31,9 +29,9 @@ import static com.example.service.HCNetSDK.SET_PRESET;
  **/
 @Slf4j
 @Service
-public class sdkClinetImpl implements sdkClinet {
+public class hikSdkClinetImpl implements hikSdkClinet {
 
-   private static HCNetSDK hCNetSDK;
+    private static HCNetSDK hCNetSDK;
 
     /**
      * @描述 初始化sdk
@@ -103,272 +101,224 @@ public class sdkClinetImpl implements sdkClinet {
         }
         return lUserID;
     }
+
     /**
-     *@描述 控制上-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:14
-     *@修改人和其它信息
+     * @描述 控制上
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:14
+     * @修改人和其它信息
      */
     @Override
-    public boolean startUp(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_UP, 0, speed);
+    public boolean controlUp(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_UP, dwStop, speed);
         if (!bool) {
             int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
+            System.out.println("控制失败,请稍后重试" + code);
+        }
+        return bool;
+    }
+
+
+    /**
+     * @描述 控制下
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:18
+     * @修改人和其它信息
+     */
+    public boolean controlDown(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_DOWN, dwStop, speed);
+        if (!bool) {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("控制失败,请稍后重试" + code);
+        }
+        return bool;
+    }
+
+
+    /**
+     * @描述 控制左转
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlLeft(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_LEFT, dwStop, speed);
+        if (!bool) {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("控制失败,请稍后重试" + code);
+        }
+        return bool;
+    }
+
+
+    /**
+     * @描述 控制右转
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlRight(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_RIGHT, dwStop, speed);
+        if (!bool) {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("控制失败,请稍后重试" + code);
         }
         return bool;
     }
 
     /**
-     *@描述 控制上-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:17
-     *@修改人和其它信息
+     * @描述 控制焦距变大
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
      */
     @Override
-    public boolean endUp(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_UP, 1, speed);
+    public boolean controlZoomIn(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.ZOOM_IN, dwStop);
         if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
+            System.out.println("控制失败,请稍后重试");
         }
         return bool;
     }
 
     /**
-     *@描述 控制下-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:18
-     *@修改人和其它信息
+     * @描述 控制焦距变小
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
      */
-    public boolean startDown(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_DOWN, 0, speed);
+    @Override
+    public boolean controlZoomOut(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.ZOOM_OUT, dwStop);
         if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
+            System.out.println("控制失败,请稍后重试");
         }
         return bool;
     }
 
-    /**
-     *@描述 控制下-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:19
-     *@修改人和其它信息
-     */
-    public boolean endDown(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.TILT_DOWN, 1, speed);
-        if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制左转-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean startLeft(Integer userId, Integer channelNum, Integer speed) {
 
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_LEFT, 0, speed);
-        if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
-        }
-        return bool;
-    }
     /**
-     *@描述 控制左转-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
+     * @描述 控制焦点前调
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
      */
     @Override
-    public boolean endLeft(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_LEFT, 1, speed);
-        if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
+    public boolean controlFocusNear(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
         }
-        return bool;
-    }
-    /**
-     *@描述 控制右转-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean startRight(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_RIGHT, 0, speed);
-        if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制右转-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean endRight(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId, channelNum, HCNetSDK.PAN_RIGHT, 1, speed);
-        if (!bool) {
-            int code = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("控制失败,请稍后重试"+code);
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制焦距变大-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean startZoomIn(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.ZOOM_IN, 0);
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.FOCUS_NEAR, dwStop);
         if (!bool) {
             System.out.println("控制失败,请稍后重试");
         }
         return bool;
     }
+
+
     /**
-     *@描述 控制焦距变大-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
+     * @描述 控制焦点后调
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:23
+     * @修改人和其它信息
      */
     @Override
-    public boolean endZoomIn(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.ZOOM_IN, 1);
+    public boolean controlFocusFar(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.FOCUS_FAR, dwStop);
         if (!bool) {
             System.out.println("控制失败,请稍后重试");
         }
         return bool;
     }
+
+
     /**
-     *@描述 控制焦距变小-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
+     * @描述 接通雨刷开关
+     * @参数 [userId, channelNum, speed]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 8:40
+     * @修改人和其它信息
      */
     @Override
-    public boolean startZoomOut(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.ZOOM_OUT, 0);
+    public boolean controlWiperPwron(Integer userId, Integer channelNum, Integer speed, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.WIPER_PWRON, dwStop);
         if (!bool) {
             System.out.println("控制失败,请稍后重试");
         }
         return bool;
     }
-    /**
-     *@描述 控制焦距变小-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean endZoomOut(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.ZOOM_OUT, 1);
-        if (!bool) {
-            System.out.println("控制失败,请稍后重试");
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制焦点前调-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean startFocusNear(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.FOCUS_NEAR, 0);
-        if (!bool) {
-            System.out.println("控制失败,请稍后重试");
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制焦点前调-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean endFocusNear(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.FOCUS_NEAR, 1);
-        if (!bool) {
-            System.out.println("控制失败,请稍后重试");
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制焦点后调-开始
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean startFocusFar(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.FOCUS_FAR, 0);
-        if (!bool) {
-            System.out.println("控制失败,请稍后重试");
-        }
-        return bool;
-    }
-    /**
-     *@描述 控制焦点后调-结束
-     *@参数 [userId, channelNum, speed]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:23
-     *@修改人和其它信息
-     */
-    @Override
-    public boolean endFocusFar(Integer userId, Integer channelNum, Integer speed) {
-        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, 1, HCNetSDK.FOCUS_FAR, 1);
-        if (!bool) {
-            System.out.println("控制失败,请稍后重试");
-        }
-        return bool;
-    }
+
+
     /**
      * 是否在线
      *
@@ -381,10 +331,11 @@ public class sdkClinetImpl implements sdkClinet {
     }
 
     /**
-     * 截图
+     * 截图 返给前端
      *
      * @param userId
      */
+    @Override
     public void captureJPEGPicture(Integer userId, HttpServletResponse response) {
         HCNetSDK.NET_DVR_WORKSTATE_V30 devwork = new HCNetSDK.NET_DVR_WORKSTATE_V30();
         if (!hCNetSDK.NET_DVR_GetDVRWorkState_V30(userId, devwork)) {
@@ -414,11 +365,11 @@ public class sdkClinetImpl implements sdkClinet {
             //二进制传输数据
             response.setContentType("multipart/form-data");
             //设置响应头
-            response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())+".jpeg", "UTF-8"));
+            response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".jpeg", "UTF-8"));
 
             outputStream = response.getOutputStream();
-           // LoginUser loginUser = LoginContext.me().getLoginUser();
-            WaterMarkUtil.markImageByIO("",in,outputStream,null,"jpeg");
+            // LoginUser loginUser = LoginContext.me().getLoginUser();
+            WaterMarkUtil.markImageByIO("", in, outputStream, null, "jpeg");
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -434,7 +385,12 @@ public class sdkClinetImpl implements sdkClinet {
 
     }
 
-    public void picCutCate(Integer lUserID, Integer channelNum, String imgPath) {
+    /**
+     * 截图 存服务器
+     *
+     * @param userId
+     */
+    public void picCutCate(Integer userId, Integer channelNum, String imgPath) {
         //图片质量
         HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
         //设置图片分辨率
@@ -447,7 +403,7 @@ public class sdkClinetImpl implements sdkClinet {
         File file = new File(imgPath);
         // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
         log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
-        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(lUserID, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
+        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
         log.info("-----------这里开始图片存入内存----------" + is);
         if (is) {
             /**
@@ -508,20 +464,22 @@ public class sdkClinetImpl implements sdkClinet {
         }
         return bool;
     }
+
     /**
-     *@描述 获取ptz信息
-     *@参数 [userId, channelNum]
-     *@返回值 boolean
-     *@创建人 刘苏义
-     *@创建时间 2023/1/17 16:36
-     *@修改人和其它信息
+     * @描述 获取ptz信息
+     * @参数 [userId, channelNum]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:36
+     * @修改人和其它信息
      */
     @Override
-    public boolean getPtz(Integer userId, Integer channelNum) {
+    public PTZ getPtz(Integer userId, Integer channelNum) {
 
         HCNetSDK.NET_DVR_PTZPOS m_ptzPosCurrent = new HCNetSDK.NET_DVR_PTZPOS();
         Pointer pioint = m_ptzPosCurrent.getPointer();
         IntByReference ibrBytesReturned = new IntByReference(0);
+        PTZ ptz = new PTZ();
         boolean bool = hCNetSDK.NET_DVR_GetDVRConfig(userId, HCNetSDK.NET_DVR_GET_PTZPOS, channelNum, pioint, m_ptzPosCurrent.size(), ibrBytesReturned);
         if (bool) {
             m_ptzPosCurrent.read();
@@ -531,11 +489,98 @@ public class sdkClinetImpl implements sdkClinet {
             //如获取的水平参数P的值是0x1750，实际显示的P值为175度；
             //获取到的垂直参数T的值是0x0789，实际显示的T值为78.9度；
             //获取到的变倍参数Z的值是0x1100，实际显示的Z值为110倍。
-            System.out.println("PTZ垂直参数为: " + df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wTiltPos)) / 10));
-            System.out.println("PTZ水平参数为: " + df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wPanPos)) / 10));
-            System.out.println("PTZ变倍参数为: " + df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wZoomPos)) / 10));
+            String p = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wPanPos)) / 10);
+            String t = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wTiltPos)) / 10);
+            String z = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wZoomPos)) / 10);
+            System.out.println("T垂直参数为: " + p);
+            System.out.println("P水平参数为: " + t);
+            System.out.println("Z变倍参数为: " + z);
+            ptz.setWPanPos(p);
+            ptz.setWTiltPos(t);
+            ptz.setWZoomPos(z);
         }
-        return  bool;
+        return ptz;
     }
 
+    /**
+     * @描述 设置ptz信息
+     * @参数 [userId, channelNum]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/17 16:36
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean setPtz(Integer userId, Integer channelNum, PTZ ptz) {
+        HCNetSDK.NET_DVR_PTZPOS m_ptzPosCurrent = new HCNetSDK.NET_DVR_PTZPOS();
+        m_ptzPosCurrent.wAction = 1;
+        m_ptzPosCurrent.wPanPos = (short) (Integer.parseInt(ptz.getWPanPos(), 16));
+        m_ptzPosCurrent.wTiltPos = (short) (Integer.parseInt(ptz.getWTiltPos(), 16));
+        m_ptzPosCurrent.wZoomPos = (short) (Integer.parseInt(ptz.getWZoomPos(), 16));
+        Pointer point = m_ptzPosCurrent.getPointer();
+        m_ptzPosCurrent.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_PTZPOS, channelNum, point, m_ptzPosCurrent.size());
+        if (!bool) {
+            int i = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("错误码：" + i);
+        }
+        return bool;
+    }
+
+    /**
+     * @描述 透雾开关
+     * @参数 [userId, channelNum, enable]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 13:07
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlDefogcfg(Integer userId, Integer channelNum, boolean enable) {
+        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX m_ptzPosCurrent = new HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX();
+        NET_DVR_DEFOGCFG defogcfg = new NET_DVR_DEFOGCFG();
+        if (enable) {
+            defogcfg.byMode = 2;//0-不启用 1-自动模式 2-常开模式
+            defogcfg.byLevel = 100;//取值范围0-100
+        } else {
+            defogcfg.byMode = 0;//0-不启用 1-自动模式 2-常开模式
+        }
+        m_ptzPosCurrent.struDefogCfg = defogcfg;
+        Pointer point = m_ptzPosCurrent.getPointer();
+        m_ptzPosCurrent.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, m_ptzPosCurrent.size());
+        if (!bool) {
+            int i = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("错误码：" + i);
+        }
+        return bool;
+    }
+
+    /**
+     * @描述 红外开关
+     * @参数 [userId, channelNum, enable]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 13:07
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlInfrarecfg(Integer userId, Integer channelNum, boolean enable) {
+        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX Current = new NET_DVR_CAMERAPARAMCFG_EX();
+        HCNetSDK.NET_DVR_DAYNIGHT DAYNIGHT = new HCNetSDK.NET_DVR_DAYNIGHT();
+        if (enable) {
+            DAYNIGHT.byDayNightFilterType = 1;//夜晚
+        } else {
+            DAYNIGHT.byDayNightFilterType = 0;//白天
+        }
+        Current.struDayNight = DAYNIGHT;
+        Pointer point = Current.getPointer();
+        Current.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, Current.size());
+        if (!bool) {
+            int i = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("错误码：" + i);
+        }
+        return bool;
+    }
 }

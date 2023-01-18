@@ -45,6 +45,11 @@
     <input id="enableDefogcfg" type="button" value="开启透雾"/>
     <input id="disableDefogcfg" type="button" value="关闭透雾"/>
     <input id="enableInfrarecfg" type="button" value="开启红外"/>
+    <input id="disableInfrarecfg" type="button" value="关闭红外"/>
+    <input id="enableFocusMode" type="button" value="手动聚焦"/>
+    <input id="disableFocusMode" type="button" value="自动聚焦"/>
+    <input id="enableHeateRpwron" type="button" value="开启云台加热"/>
+    <input id="disableHeateRpwron" type="button" value="关闭云台加热"/>
 </div>
 <div>
     <input id="captureJPEGPicture" type="button" value="抓图"/>
@@ -208,6 +213,51 @@
     $("#enableInfrarecfg").click(function () {
         $.ajax({
             url: "../enableInfrarecfg?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#disableInfrarecfg").click(function () {
+        $.ajax({
+            url: "../disableInfrarecfg?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#enableFocusMode").click(function () {
+        $.ajax({
+            url: "../enableFocusMode?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#disableFocusMode").click(function () {
+        $.ajax({
+            url: "../disableFocusMode?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#enableHeateRpwron").click(function () {
+        $.ajax({
+            url: "../enableHeateRpwron?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#disableHeateRpwron").click(function () {
+        $.ajax({
+            url: "../disableHeateRpwron?channelNum=1",
             type: "get",
             success: function (data) {
                 console.log(data);

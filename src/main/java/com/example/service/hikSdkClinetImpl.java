@@ -537,7 +537,16 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      */
     @Override
     public boolean controlDefogcfg(Integer userId, Integer channelNum, boolean enable) {
-        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX m_ptzPosCurrent = new HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX();
+        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX struCameraParam = new HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX();
+        Pointer point = struCameraParam.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_CCDPARAMCFG_EX, channelNum, point, struCameraParam.size(), ibrBytesReturned);
+        if (!b_GetCameraParam) {
+            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        struCameraParam.read();
+        System.out.println("是否开启透雾：" + struCameraParam.struDefogCfg.byMode);
+
         NET_DVR_DEFOGCFG defogcfg = new NET_DVR_DEFOGCFG();
         if (enable) {
             defogcfg.byMode = 2;//0-不启用 1-自动模式 2-常开模式
@@ -545,14 +554,15 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         } else {
             defogcfg.byMode = 0;//0-不启用 1-自动模式 2-常开模式
         }
-        m_ptzPosCurrent.struDefogCfg = defogcfg;
-        Pointer point = m_ptzPosCurrent.getPointer();
-        m_ptzPosCurrent.write();
-        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, m_ptzPosCurrent.size());
+        struCameraParam.struDefogCfg = defogcfg;
+        //struCameraParam.struCorridorMode.byEnableCorridorMode = 1;
+        struCameraParam.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, struCameraParam.size());
         if (!bool) {
-            int i = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("错误码：" + i);
+            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
+        // struCameraParam.read();
+        System.out.println("设置成功");
         return bool;
     }
 
@@ -566,21 +576,115 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      */
     @Override
     public boolean controlInfrarecfg(Integer userId, Integer channelNum, boolean enable) {
-        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX Current = new NET_DVR_CAMERAPARAMCFG_EX();
-        HCNetSDK.NET_DVR_DAYNIGHT DAYNIGHT = new HCNetSDK.NET_DVR_DAYNIGHT();
+
+        HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX struDayNigh = new HCNetSDK.NET_DVR_CAMERAPARAMCFG_EX();
+        Pointer point = struDayNigh.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_CCDPARAMCFG_EX, channelNum, point, struDayNigh.size(), ibrBytesReturned);
+        if (!b_GetCameraParam) {
+            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        struDayNigh.read();
+        System.out.println("是否开启夜视：" + struDayNigh.struDayNight.byDayNightFilterType);
+
+        HCNetSDK.NET_DVR_DAYNIGHT daynight = new HCNetSDK.NET_DVR_DAYNIGHT();
         if (enable) {
-            DAYNIGHT.byDayNightFilterType = 1;//夜晚
+            daynight.byDayNightFilterType = 1;//夜晚
+
         } else {
-            DAYNIGHT.byDayNightFilterType = 0;//白天
+            daynight.byDayNightFilterType = 0;//白天
         }
-        Current.struDayNight = DAYNIGHT;
-        Pointer point = Current.getPointer();
-        Current.write();
-        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, Current.size());
+        daynight.bySwitchScheduleEnabled = 1;
+        daynight.byDayNightFilterTime = 60;
+        struDayNigh.struDayNight = daynight;
+       // struDayNigh.struCorridorMode.byEnableCorridorMode = 1;
+        struDayNigh.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, struDayNigh.size());
         if (!bool) {
-            int i = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("错误码：" + i);
+            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
+        System.out.println("设置成功");
+        return bool;
+    }
+
+    /**
+     * @描述 聚焦开关
+     * @参数 [userId, channelNum, enable]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 13:07
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlFocusMode(Integer userId, Integer channelNum, boolean enable) {
+        HCNetSDK.NET_DVR_FOCUSMODE_CFG struFocusMode = new HCNetSDK.NET_DVR_FOCUSMODE_CFG();
+        Pointer point = struFocusMode.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_FOCUSMODECFG, channelNum, point, struFocusMode.size(), ibrBytesReturned);
+        if (!b_GetCameraParam) {
+            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        struFocusMode.read();
+        System.out.println("是否开启手动聚焦：" + struFocusMode.byFocusMode);
+
+        if (enable) {
+            struFocusMode.byFocusMode = 1;//手动聚焦
+        } else {
+            struFocusMode.byFocusMode = 2;//自动聚焦
+        }
+        struFocusMode.byFocusDefinitionDisplay = 1;
+        struFocusMode.byFocusSpeedLevel = 3;
+        struFocusMode.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_FOCUSMODECFG, channelNum, point, struFocusMode.size());
+        if (!bool) {
+            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        System.out.println("设置成功");
+        return bool;
+    }
+    /**
+     * @描述 云台加热开关
+     * @参数 [userId, channelNum, enable]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 13:07
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlHeateRpwron(Integer userId, Integer channelNum, boolean enable) {
+//        Integer dwStop;
+//        if (enable) {
+//            dwStop = 0;//开启
+//        } else {
+//            dwStop = 1;//关闭
+//        }
+//        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId,channelNum, HEATER_PWRON,dwStop,speed);
+//        if (!bool) {
+//            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+//        }
+//        System.out.println("设置成功");
+//        return bool;
+        HCNetSDK.NET_DVR_DEVSERVER_CFG struDeicing = new HCNetSDK.NET_DVR_DEVSERVER_CFG();
+        Pointer point = struDeicing.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_DEVSERVER_CFG, channelNum, point, struDeicing.size(), ibrBytesReturned);
+        if (!b_GetCameraParam) {
+            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        struDeicing.read();
+        System.out.println("是否开启除冰：" + struDeicing.byEnableDeicing);
+
+        if (enable) {
+            struDeicing.byEnableDeicing = 1;//开启
+        } else {
+            struDeicing.byEnableDeicing = 0;//关闭
+        }
+        struDeicing.write();
+        boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_DEVSERVER_CFG, channelNum, point, struDeicing.size());
+        if (!bool) {
+            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        System.out.println("设置成功");
         return bool;
     }
 }

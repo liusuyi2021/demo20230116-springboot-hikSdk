@@ -34,8 +34,12 @@ public interface hikSdkClinet {
     boolean controlWiperPwron(Integer userId, Integer channelNum, Integer speed,boolean enable);
     //透雾
     boolean controlDefogcfg(Integer userId, Integer channelNum,boolean enable);
-    //红外
+    //红外?
     boolean controlInfrarecfg(Integer userId, Integer channelNum,boolean enable);
+    //聚焦模式
+    boolean controlFocusMode(Integer userId, Integer channelNum,boolean enable);
+    //云台加热
+    boolean controlHeateRpwron(Integer userId, Integer channelNum, boolean enable);
     //抓图-返给前端二进制流
     void captureJPEGPicture(Integer userId, HttpServletResponse response);
     //抓图-存本地

@@ -114,16 +114,18 @@ public class sdkController {
 
     @RequestMapping("/controlFocusNear")
     private @ResponseBody
-    String controlFocusNear(Integer channelNum, Integer speed) {
+    String controlFocusNear(Integer channelNum, Integer speed) throws InterruptedException {
         sdk.controlFocusNear(UserId, channelNum, speed, true);
+        Thread.sleep(200);
         sdk.controlFocusNear(UserId, channelNum, speed, false);
         return "controlFocusNear";
     }
 
     @RequestMapping("/controlFocusFar")
     private @ResponseBody
-    String controlFocusFar(Integer channelNum, Integer speed) {
+    String controlFocusFar(Integer channelNum, Integer speed) throws InterruptedException {
         sdk.controlFocusFar(UserId, channelNum, speed, true);
+        Thread.sleep(200);
         sdk.controlFocusFar(UserId, channelNum, speed, false);
         return "controlZoomOut";
     }
@@ -190,6 +192,36 @@ public class sdkController {
     String enableInfrarecfg(Integer channelNum) {
         sdk.controlInfrarecfg(UserId, channelNum, true);
         return "开启红外成功！";
+    }
+    @RequestMapping("/disableInfrarecfg")
+    private @ResponseBody
+    String disableInfrarecfg(Integer channelNum) {
+        sdk.controlInfrarecfg(UserId, channelNum, false);
+        return "关闭红外成功！";
+    }
+    @RequestMapping("/enableFocusMode")
+    private @ResponseBody
+    String enableFocusMode(Integer channelNum) {
+        sdk.controlFocusMode(UserId, channelNum, true);
+        return "开启手动聚焦成功！";
+    }
+    @RequestMapping("/disableFocusMode")
+    private @ResponseBody
+    String disableFocusMode(Integer channelNum) {
+        sdk.controlFocusMode(UserId, channelNum, false);
+        return "开启自动聚焦成功！";
+    }
+    @RequestMapping("/enableHeateRpwron")
+    private @ResponseBody
+    String enableHeateRpwron(Integer channelNum) {
+        sdk.controlHeateRpwron(UserId, channelNum,true);
+        return "开启云台加热成功！";
+    }
+    @RequestMapping("/disableHeateRpwron")
+    private @ResponseBody
+    String disableHeateRpwron(Integer channelNum) {
+        sdk.controlHeateRpwron(UserId, channelNum,false);
+        return "关闭云台加热成功！";
     }
 
     @RequestMapping("/captureJPEGPicture")

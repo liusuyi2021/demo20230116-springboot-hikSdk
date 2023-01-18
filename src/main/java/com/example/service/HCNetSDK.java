@@ -685,7 +685,8 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_SET_CCDPARAMCFG_EX = 3369;//设置前端参数(扩展)
     public static final int NET_DVR_GET_FOCUSMODECFG = 3305;//获取快球聚焦模式信息
     public static final int NET_DVR_SET_FOCUSMODECFG = 3306;//设置快球聚焦模式信息
-
+    public static final int NET_DVR_GET_DEVSERVER_CFG=3257;//获取模块服务配置
+    public static final int NET_DVR_SET_DEVSERVER_CFG=3258;//设置模块服务配置
     public static final int NET_DVR_GET_SUPPLEMENTLIGHT = 3728;  //获取内置补光灯配置协议
     public static final int NET_DVR_SET_SUPPLEMENTLIGHT = 3729;  //设置内置补光灯配置协议
 
@@ -705,7 +706,6 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_GET_THERMOMETRY_PRESETINFO = 3624;  //获取测温预置点关联配置参数
     public static final int NET_DVR_SET_THERMOMETRY_PRESETINFO = 3625;  //设置测温预置点关联配置参数
     public static final int NET_DVR_GET_THERMOMETRYRULE_TEMPERATURE_INFO = 23001;//手动获取测温规则温度信息
-    public static final int NET_DVR_SET_DEVSERVER_CFG = 3258;//设置模块服务配置
 
     public static final int NET_DVR_GET_PHY_DISK_INFO = 6306;   //获取物理磁盘信息
     public static final int NET_DVR_GET_WORK_STATUS = 6189;   //获取设备工作状态

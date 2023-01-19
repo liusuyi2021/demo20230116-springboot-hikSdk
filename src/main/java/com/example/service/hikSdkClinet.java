@@ -4,6 +4,7 @@ import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @ClassName: sdkClinet
@@ -47,4 +48,5 @@ public interface hikSdkClinet {
     //ptz 三坐标
     PTZ getPtz(Integer userId, Integer channelNum);
     boolean setPtz(Integer userId, Integer channelNum,PTZ ptz);
+    void record(Integer userId, Integer channelNum) throws InterruptedException, IOException;
 }

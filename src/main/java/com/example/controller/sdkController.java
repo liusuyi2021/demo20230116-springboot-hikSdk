@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -226,15 +227,19 @@ public class sdkController {
 
     @RequestMapping("/captureJPEGPicture")
     private @ResponseBody
-    String captureJPEGPicture(HttpServletResponse response) {
+    String  captureJPEGPicture(HttpServletResponse response) {
         sdk.captureJPEGPicture(UserId, response);
         return "图片上传成功";
     }
 
     @RequestMapping("/captureJPEGPicture1")
-    private String captureJPEGPicture1(Integer channelNum, String imagePath) {
+    private  @ResponseBody String captureJPEGPicture1(Integer channelNum, String imagePath) {
         sdk.picCutCate(UserId, channelNum, imagePath);
         return "图片保存成功";
     }
-
+    @RequestMapping("/record")
+    private  @ResponseBody String record(Integer channelNum) throws InterruptedException, IOException {
+        sdk.record(UserId, channelNum);
+        return "录像保存成功";
+    }
 }

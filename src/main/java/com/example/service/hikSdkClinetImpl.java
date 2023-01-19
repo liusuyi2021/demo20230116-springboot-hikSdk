@@ -6,8 +6,10 @@ import com.example.util.WaterMarkUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +19,8 @@ import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.service.HCNetSDK.*;
 
@@ -330,112 +334,6 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         return isOnLine;
     }
 
-    /**
-     * 截图 返给前端
-     *
-     * @param userId
-     */
-    @Override
-    public void captureJPEGPicture(Integer userId, HttpServletResponse response) {
-        HCNetSDK.NET_DVR_WORKSTATE_V30 devwork = new HCNetSDK.NET_DVR_WORKSTATE_V30();
-        if (!hCNetSDK.NET_DVR_GetDVRWorkState_V30(userId, devwork)) {
-            // 返回Boolean值，判断是否获取设备能力
-            System.out.println("抓图失败，请稍后重试");
-        }
-        //图片质量
-        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
-        //设置图片分辨率
-        jpeg.wPicSize = 0;
-        //设置图片质量
-        jpeg.wPicQuality = 0;
-        IntByReference a = new IntByReference();
-        //设置图片大小
-        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
-        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
-        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, 1, jpeg, jpegBuffer, 1024 * 1024, a);
-        log.info("-----------这里开始图片存入内存----------" + is);
-
-        ByteArrayInputStream in = new ByteArrayInputStream(jpegBuffer.array(), 0, a.getValue());
-        OutputStream outputStream = null;
-        try {
-            //1、设置response 响应头 //设置页面不缓存,清空buffer
-            response.reset();
-            //字符编码
-            response.setCharacterEncoding("UTF-8");
-            //二进制传输数据
-            response.setContentType("multipart/form-data");
-            //设置响应头
-            response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".jpeg", "UTF-8"));
-
-            outputStream = response.getOutputStream();
-            // LoginUser loginUser = LoginContext.me().getLoginUser();
-            WaterMarkUtil.markImageByIO("", in, outputStream, null, "jpeg");
-            outputStream.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("抓图失败，请稍后重试");
-        } finally {
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                System.out.println("抓图失败，请稍后重试");
-            }
-        }
-        log.info("-----------处理完成截图数据----------");
-
-    }
-
-    /**
-     * 截图 存服务器
-     *
-     * @param userId
-     */
-    public void picCutCate(Integer userId, Integer channelNum, String imgPath) {
-        //图片质量
-        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
-        //设置图片分辨率
-        jpeg.wPicSize = 0;
-        //设置图片质量
-        jpeg.wPicQuality = 0;
-        IntByReference a = new IntByReference();
-        //设置图片大小
-        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
-        File file = new File(imgPath);
-        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
-        log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
-        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
-        log.info("-----------这里开始图片存入内存----------" + is);
-        if (is) {
-            /**
-             * 该方式使用内存获取 但是读取有问题无法预览
-             * linux下 可能有问题
-             * */
-            log.info("hksdk(抓图)-结果状态值(0表示成功):" + hCNetSDK.NET_DVR_GetLastError());
-            byte[] array = jpegBuffer.array();
-
-            //存储到本地
-            BufferedOutputStream outputStream = null;
-            try {
-                outputStream = new BufferedOutputStream(new FileOutputStream(file));
-                outputStream.write(jpegBuffer.array(), 0, a.getValue());
-                outputStream.flush();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else {
-            log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
-        }
-    }
 
     /**
      * 设置预置点
@@ -597,7 +495,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         daynight.bySwitchScheduleEnabled = 1;
         daynight.byDayNightFilterTime = 60;
         struDayNigh.struDayNight = daynight;
-       // struDayNigh.struCorridorMode.byEnableCorridorMode = 1;
+        // struDayNigh.struCorridorMode.byEnableCorridorMode = 1;
         struDayNigh.write();
         boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, struDayNigh.size());
         if (!bool) {
@@ -642,6 +540,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         System.out.println("设置成功");
         return bool;
     }
+
     /**
      * @描述 云台加热开关
      * @参数 [userId, channelNum, enable]
@@ -686,5 +585,169 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         }
         System.out.println("设置成功");
         return bool;
+    }
+
+    /**
+     * 截图 返给前端
+     *
+     * @param userId
+     */
+    @Override
+    public void captureJPEGPicture(Integer userId, HttpServletResponse response) {
+        HCNetSDK.NET_DVR_WORKSTATE_V30 devwork = new HCNetSDK.NET_DVR_WORKSTATE_V30();
+        if (!hCNetSDK.NET_DVR_GetDVRWorkState_V30(userId, devwork)) {
+            // 返回Boolean值，判断是否获取设备能力
+            System.out.println("抓图失败，请稍后重试");
+        }
+        //图片质量
+        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
+        //设置图片分辨率
+        jpeg.wPicSize = 0;
+        //设置图片质量
+        jpeg.wPicQuality = 0;
+        IntByReference a = new IntByReference();
+        //设置图片大小
+        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
+        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
+        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, 1, jpeg, jpegBuffer, 1024 * 1024, a);
+        log.info("-----------这里开始图片存入内存----------" + is);
+
+        ByteArrayInputStream in = new ByteArrayInputStream(jpegBuffer.array(), 0, a.getValue());
+        OutputStream outputStream = null;
+        try {
+            //1、设置response 响应头 //设置页面不缓存,清空buffer
+            response.reset();
+            //字符编码
+            response.setCharacterEncoding("UTF-8");
+            //二进制传输数据
+            response.setContentType("multipart/form-data");
+            //设置响应头
+            response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".jpeg", "UTF-8"));
+
+            outputStream = response.getOutputStream();
+            // LoginUser loginUser = LoginContext.me().getLoginUser();
+            WaterMarkUtil.markImageByIO("", in, outputStream, null, "jpeg");
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("抓图失败，请稍后重试");
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                System.out.println("抓图失败，请稍后重试");
+            }
+        }
+        log.info("-----------处理完成截图数据----------");
+
+    }
+
+    /**
+     * 截图 存服务器
+     *
+     * @param userId
+     */
+    public void picCutCate(Integer userId, Integer channelNum, String imgPath) {
+        //图片质量
+        HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
+        //设置图片分辨率
+        jpeg.wPicSize = 0;
+        //设置图片质量
+        jpeg.wPicQuality = 0;
+        IntByReference a = new IntByReference();
+        //设置图片大小
+        ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
+        File file = new File(imgPath);
+        // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
+        log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
+        boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
+        log.info("-----------这里开始图片存入内存----------" + is);
+        if (is) {
+            /**
+             * 该方式使用内存获取 但是读取有问题无法预览
+             * linux下 可能有问题
+             * */
+            log.info("hksdk(抓图)-结果状态值(0表示成功):" + hCNetSDK.NET_DVR_GetLastError());
+            byte[] array = jpegBuffer.array();
+
+            //存储到本地
+            BufferedOutputStream outputStream = null;
+            try {
+                outputStream = new BufferedOutputStream(new FileOutputStream(file));
+                outputStream.write(jpegBuffer.array(), 0, a.getValue());
+                outputStream.flush();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
+        }
+    }
+
+    @Async
+    @Override
+    public void record(Integer userId, Integer channelNum) throws InterruptedException, IOException {
+        HCNetSDK.FRealDataCallBack_V30 fRealDataCallBack = null;
+        //预览参数
+//        HCNetSDK.NET_DVR_CLIENTINFO clientinfo = new NET_DVR_CLIENTINFO();
+//        clientinfo.lChannel = channelNum;
+//        clientinfo.lLinkMode = 0;//连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
+//        clientinfo.hPlayWnd = null;//播放窗口的句柄，为NULL表示不解码显示。
+//        clientinfo.sMultiCastIP = null;
+        NET_DVR_PREVIEWINFO previewinfo=new NET_DVR_PREVIEWINFO();
+        previewinfo.read();
+        previewinfo.lChannel = channelNum;
+        previewinfo.dwStreamType  = 0;//码流类型：0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
+        previewinfo.dwLinkMode  = 0;//连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
+        previewinfo.hPlayWnd = null;//播放窗口的句柄，为NULL表示不解码显示。
+        previewinfo.bBlocked  = 0;//0- 非阻塞取流，1- 阻塞取流
+        previewinfo.byNPQMode=0;//NPQ模式：0- 直连模式，1-过流媒体模式
+        previewinfo.write();
+        //回调
+        if (fRealDataCallBack == null) {
+            fRealDataCallBack = new FRealDataCallBack_V30() {
+                @Override
+                public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
+
+                }
+            };
+        }
+       // int lRealHandle = hCNetSDK.NET_DVR_RealPlay_V30(userId, clientinfo, fRealDataCallBack, null,true);
+        int lRealHandle = hCNetSDK.NET_DVR_RealPlay_V40(userId, previewinfo, fRealDataCallBack, null);
+        if (lRealHandle == -1) {
+            int iErr = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("取流失败" + iErr);
+            return;
+        }
+        System.out.println("取流成功");
+        File file = new File("D:/Download/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
+        if (!file.exists()) {
+            try {
+                File fileParent = file.getParentFile();
+                if(!fileParent.exists()){
+                    fileParent.mkdirs();
+                }
+                file.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (!hCNetSDK.NET_DVR_SaveRealData_V30(lRealHandle, 1,file.getCanonicalPath())) {
+            log.error("保存视频文件到文件夹失败 错误码为:  " + hCNetSDK.NET_DVR_GetLastError());
+            return;
+        }
+        Thread.sleep(10000);
+        hCNetSDK.NET_DVR_StopRealPlay(lRealHandle);
+
     }
 }

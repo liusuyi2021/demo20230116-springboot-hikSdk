@@ -685,8 +685,8 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_SET_CCDPARAMCFG_EX = 3369;//设置前端参数(扩展)
     public static final int NET_DVR_GET_FOCUSMODECFG = 3305;//获取快球聚焦模式信息
     public static final int NET_DVR_SET_FOCUSMODECFG = 3306;//设置快球聚焦模式信息
-    public static final int NET_DVR_GET_DEVSERVER_CFG=3257;//获取模块服务配置
-    public static final int NET_DVR_SET_DEVSERVER_CFG=3258;//设置模块服务配置
+    public static final int NET_DVR_GET_DEVSERVER_CFG = 3257;//获取模块服务配置
+    public static final int NET_DVR_SET_DEVSERVER_CFG = 3258;//设置模块服务配置
     public static final int NET_DVR_GET_SUPPLEMENTLIGHT = 3728;  //获取内置补光灯配置协议
     public static final int NET_DVR_SET_SUPPLEMENTLIGHT = 3729;  //设置内置补光灯配置协议
 
@@ -9847,6 +9847,10 @@ DVR实现巡航数据结构
 
     boolean NET_DVR_DelDVR_V30(int lVoiceHandle);
 
+    //短时录像
+    boolean NET_DVR_SaveRealData_V30(int lRealHandle, int STREAM_TYPE, String sFileName);
+
+
     ////////////////////////////////////////////////////////////
 //透明通道设置
     int NET_DVR_SerialStart(int lUserID, int lSerialPort, FSerialDataCallBack fSerialDataCallBack, int dwUser);
@@ -10628,5 +10632,9 @@ interface USER32 extends W32API {
     boolean DrawEdge(HDC hdc, com.sun.jna.examples.win32.GDI32.RECT qrc, int edge, int grfFlags);
 
     int FillRect(HDC hDC, com.sun.jna.examples.win32.GDI32.RECT lprc, HANDLE hbr);
+
 }
+
+
+
 

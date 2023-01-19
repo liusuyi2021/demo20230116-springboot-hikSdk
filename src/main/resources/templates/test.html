@@ -52,6 +52,7 @@
     <input id="disableHeateRpwron" type="button" value="关闭云台加热"/>
 </div>
 <div>
+    <input id="record" type="button" value="录像"/>
     <input id="captureJPEGPicture" type="button" value="抓图"/>
     <div id="imgcontainer"/>
 </div>
@@ -283,6 +284,15 @@
             }
         }
         xhr.send();
+    })
+    $("#record").click(function () {
+        $.ajax({
+            url: "../record?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
     })
 </script>
 </html>

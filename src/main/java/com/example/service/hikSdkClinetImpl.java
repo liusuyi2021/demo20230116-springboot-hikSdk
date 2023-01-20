@@ -18,9 +18,7 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.service.HCNetSDK.*;
 
@@ -37,6 +35,8 @@ public class hikSdkClinetImpl implements hikSdkClinet {
 
     private static HCNetSDK hCNetSDK;
 
+    private static Map<Integer, Integer> user_real_Map = new HashMap<>();
+
     /**
      * @描述 初始化sdk
      * @参数 []
@@ -46,6 +46,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      * @修改人和其它信息
      */
     @Override
+
     public void initHCNetSDK() {
         try {
             String WIN_PATH = System.getProperty("user.dir") + File.separator + "lib" + File.separator + "HCNetSDK.dll";
@@ -694,60 +695,69 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         }
     }
 
-    @Async
+    /**
+     * @描述 短时录像
+     * @参数 [userId, channelNum, enable]
+     * @返回值 void
+     * @创建人 刘苏义
+     * @创建时间 2023/1/20 11:18
+     * @修改人和其它信息
+     */
     @Override
-    public void record(Integer userId, Integer channelNum) throws InterruptedException, IOException {
-        HCNetSDK.FRealDataCallBack_V30 fRealDataCallBack = null;
+    public void record(Integer userId, Integer channelNum, Boolean enable) {
         //预览参数
-//        HCNetSDK.NET_DVR_CLIENTINFO clientinfo = new NET_DVR_CLIENTINFO();
-//        clientinfo.lChannel = channelNum;
-//        clientinfo.lLinkMode = 0;//连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
-//        clientinfo.hPlayWnd = null;//播放窗口的句柄，为NULL表示不解码显示。
-//        clientinfo.sMultiCastIP = null;
-        NET_DVR_PREVIEWINFO previewinfo=new NET_DVR_PREVIEWINFO();
+        NET_DVR_PREVIEWINFO previewinfo = new NET_DVR_PREVIEWINFO();
         previewinfo.read();
         previewinfo.lChannel = channelNum;
-        previewinfo.dwStreamType  = 0;//码流类型：0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
-        previewinfo.dwLinkMode  = 0;//连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
+        previewinfo.dwStreamType = 0;//码流类型：0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
+        previewinfo.dwLinkMode = 0;//连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
         previewinfo.hPlayWnd = null;//播放窗口的句柄，为NULL表示不解码显示。
-        previewinfo.bBlocked  = 0;//0- 非阻塞取流，1- 阻塞取流
-        previewinfo.byNPQMode=0;//NPQ模式：0- 直连模式，1-过流媒体模式
+        previewinfo.bBlocked = 0;//0- 非阻塞取流，1- 阻塞取流
+        previewinfo.byNPQMode = 0;//NPQ模式：0- 直连模式，1-过流媒体模式
         previewinfo.write();
-        //回调
-        if (fRealDataCallBack == null) {
-            fRealDataCallBack = new FRealDataCallBack_V30() {
-                @Override
-                public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
+        int lRealHandle = 0;
+        if (enable) {
+            if (!user_real_Map.containsKey(userId)) {
+                lRealHandle = hCNetSDK.NET_DVR_RealPlay_V40(userId, previewinfo, null, null);
+                if (lRealHandle == -1) {
+                    int iErr = hCNetSDK.NET_DVR_GetLastError();
+                    System.out.println("取流失败" + iErr);
+                    return;
+                }
+                System.out.println("取流成功");
+                user_real_Map.put(userId,lRealHandle);
+            }
+            lRealHandle = user_real_Map.get(userId);
 
+            File file = new File("D:/Download/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
+            String path = "";
+            if (!file.exists()) {
+                try {
+                    File fileParent = file.getParentFile();
+                    if (!fileParent.exists()) {
+                        fileParent.mkdirs();
+                    }
+                    file.createNewFile();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            };
-        }
-       // int lRealHandle = hCNetSDK.NET_DVR_RealPlay_V30(userId, clientinfo, fRealDataCallBack, null,true);
-        int lRealHandle = hCNetSDK.NET_DVR_RealPlay_V40(userId, previewinfo, fRealDataCallBack, null);
-        if (lRealHandle == -1) {
-            int iErr = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("取流失败" + iErr);
-            return;
-        }
-        System.out.println("取流成功");
-        File file = new File("D:/Download/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
-        if (!file.exists()) {
+            }
             try {
-                File fileParent = file.getParentFile();
-                if(!fileParent.exists()){
-                    fileParent.mkdirs();
-                }
-                file.createNewFile();
-            } catch (Exception e) {
+                path = file.getCanonicalPath();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        if (!hCNetSDK.NET_DVR_SaveRealData_V30(lRealHandle, 1,file.getCanonicalPath())) {
-            log.error("保存视频文件到文件夹失败 错误码为:  " + hCNetSDK.NET_DVR_GetLastError());
-            return;
-        }
-        Thread.sleep(10000);
-        hCNetSDK.NET_DVR_StopRealPlay(lRealHandle);
 
+            if (!hCNetSDK.NET_DVR_SaveRealData_V30(lRealHandle, 1, path)) {
+                log.error("保存视频文件到文件夹失败 错误码为:  " + hCNetSDK.NET_DVR_GetLastError());
+                return;
+            }
+            System.out.println("录像开始");
+        } else {
+            lRealHandle = user_real_Map.get(userId);
+            hCNetSDK.NET_DVR_StopRealPlay(lRealHandle);
+            user_real_Map.remove(userId);
+            System.out.println("录像停止");
+        }
     }
 }

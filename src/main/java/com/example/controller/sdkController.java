@@ -6,13 +6,9 @@ import com.example.service.hikSdkClinetImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -237,9 +233,14 @@ public class sdkController {
         sdk.picCutCate(UserId, channelNum, imagePath);
         return "图片保存成功";
     }
-    @RequestMapping("/record")
-    private  @ResponseBody String record(Integer channelNum) throws InterruptedException, IOException {
-        sdk.record(UserId, channelNum);
+    @RequestMapping("/recordStart")
+    private  @ResponseBody String recordStart(Integer channelNum){
+        sdk.record(UserId, channelNum,true);
+        return "录像保存成功";
+    }
+    @RequestMapping("/recordStop")
+    private  @ResponseBody String recordStop(Integer channelNum){
+        sdk.record(UserId, channelNum,false);
         return "录像保存成功";
     }
 }

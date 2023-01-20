@@ -41,18 +41,15 @@
     <input id="setPTZ" type="button" value="设置ptz"/>
 </div>
 <div>
-    <input id="enableWiperPwron" type="button" value="开启雨刷"/>
-    <input id="enableDefogcfg" type="button" value="开启透雾"/>
-    <input id="disableDefogcfg" type="button" value="关闭透雾"/>
-    <input id="enableInfrarecfg" type="button" value="开启红外"/>
-    <input id="disableInfrarecfg" type="button" value="关闭红外"/>
-    <input id="enableFocusMode" type="button" value="手动聚焦"/>
-    <input id="disableFocusMode" type="button" value="自动聚焦"/>
-    <input id="enableHeateRpwron" type="button" value="开启云台加热"/>
-    <input id="disableHeateRpwron" type="button" value="关闭云台加热"/>
+    <input id="WiperPwron" type="button" value="开启雨刷"/>
+    <input id="Defogcfg" type="button" value="开启透雾"/>
+    <input id="Infrarecfg" type="button" value="开启红外"/>
+    <input id="FocusMode" type="button" value="手动聚焦"/>
+
+    <input id="HeateRpwron" type="button" value="开启云台加热"/>
 </div>
 <div>
-    <input id="record" type="button" value="录像"/>
+    <input id="record" type="button" value="开始录像"/>
     <input id="captureJPEGPicture" type="button" value="抓图"/>
     <div id="imgcontainer"/>
 </div>
@@ -140,6 +137,7 @@
             }
         })
     })
+
     $("#setPreset").click(function () {
         $.ajax({
             url: "../setPreset?channelNum=1&presetIndex=1",
@@ -158,33 +156,34 @@
             }
         })
     })
+
     $("#getPTZ").click(function () {
         $.ajax({
             url: "../getPTZ?channelNum=1",
             type: "get",
             success: function (data) {
                 console.log(data);
-                    $("#p").val(data.wpanPos);
-                    $("#t").val(data.wtiltPos);
-                    $("#z").val(data.wzoomPos);
+                $("#p").val(data.wpanPos);
+                $("#t").val(data.wtiltPos);
+                $("#z").val(data.wzoomPos);
             }
         })
     })
-
     $("#setPTZ").click(function () {
-        var p = $('#p').val()*10;
-        var t = $('#t').val()*10;
-        var z = $('#z').val()*10;
-        console.log("../setPTZ?channelNum=1&p="+p+"&t="+t+"&z="+z)
+        var p = $('#p').val() * 10;
+        var t = $('#t').val() * 10;
+        var z = $('#z').val() * 10;
+        console.log("../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z)
         $.ajax({
-            url: "../setPTZ?channelNum=1&p="+p+"&t="+t+"&z="+z,
+            url: "../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z,
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#enableWiperPwron").click(function () {
+
+    $("#WiperPwron").click(function () {
         $.ajax({
             url: "../enableWiperPwron?channelNum=1&speed=4",
             type: "get",
@@ -193,78 +192,117 @@
             }
         })
     })
-    $("#enableDefogcfg").click(function () {
-        $.ajax({
-            url: "../enableDefogcfg?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
+    var defogflag = true;
+    $("#Defogcfg").click(function () {
+        if(defogflag)
+        {
+            $(this).val("关闭透雾");
+            defogflag=false;
+            $.ajax({
+                url: "../enableDefogcfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+        else
+        {
+            $(this).val("开启透雾");
+            defogflag=true;
+            $.ajax({
+                url: "../disableDefogcfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
     })
-    $("#disableDefogcfg").click(function () {
-        $.ajax({
-            url: "../disableDefogcfg?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
+    var infrareflag = true;
+    $("#Infrarecfg").click(function () {
+        if(infrareflag)
+        {
+            $(this).val("关闭红外");
+            infrareflag=false;
+            $.ajax({
+                url: "../enableInfrarecfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+        else
+        {
+            $(this).val("开启红外");
+            infrareflag=true;
+            $.ajax({
+                url: "../disableInfrarecfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
+
     })
-    $("#enableInfrarecfg").click(function () {
-        $.ajax({
-            url: "../enableInfrarecfg?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
+    var focusModeflag = true;
+    $("#FocusMode").click(function () {
+        if(focusModeflag) {
+            $(this).val("手动聚焦");
+            focusModeflag = false;
+            $.ajax({
+                url: "../enableFocusMode?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+        else
+        {
+            $(this).val("自动聚焦");
+            focusModeflag = true;
+            $.ajax({
+                url: "../disableFocusMode?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
     })
-    $("#disableInfrarecfg").click(function () {
-        $.ajax({
-            url: "../disableInfrarecfg?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
+    var heateRpwronflag = true;
+    $("#HeateRpwron").click(function () {
+        if(heateRpwronflag) {
+            $(this).val("开启云台加热");
+            heateRpwronflag = false;
+            $.ajax({
+                url: "../enableHeateRpwron?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+        else
+        {
+            $(this).val("关闭云台加热");
+            heateRpwronflag = true;
+            $.ajax({
+                url: "../disableHeateRpwron?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
     })
-    $("#enableFocusMode").click(function () {
-        $.ajax({
-            url: "../enableFocusMode?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
-    })
-    $("#disableFocusMode").click(function () {
-        $.ajax({
-            url: "../disableFocusMode?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
-    })
-    $("#enableHeateRpwron").click(function () {
-        $.ajax({
-            url: "../enableHeateRpwron?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
-    })
-    $("#disableHeateRpwron").click(function () {
-        $.ajax({
-            url: "../disableHeateRpwron?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
-    })
+
     $("#captureJPEGPicture").click(function () {
         var url = "http://localhost:8080/captureJPEGPicture";
         var xhr = new XMLHttpRequest();
@@ -285,14 +323,30 @@
         }
         xhr.send();
     })
+    var recordflag = true;
     $("#record").click(function () {
-        $.ajax({
-            url: "../record?channelNum=1",
-            type: "get",
-            success: function (data) {
-                console.log(data);
-            }
-        })
+        if (recordflag) {
+            $(this).val("停止录像");
+            recordflag=false;
+            $.ajax({
+                url: "../recordStart?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).val("开始录像");
+            recordflag=true;
+            $.ajax({
+                url: "../recordStop?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
     })
 </script>
 </html>

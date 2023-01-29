@@ -45,12 +45,13 @@
     <input id="Defogcfg" type="button" value="开启透雾"/>
     <input id="Infrarecfg" type="button" value="开启红外"/>
     <input id="FocusMode" type="button" value="手动聚焦"/>
-
     <input id="HeateRpwron" type="button" value="开启云台加热"/>
+    <input id="CameraDeicing" type="button" value="开启镜头加热"/>
 </div>
 <div>
     <input id="record" type="button" value="开始录像"/>
     <input id="captureJPEGPicture" type="button" value="抓图"/>
+    <input id="captureJPEGPicture1" type="button" value="抓图1"/>
     <div id="imgcontainer"/>
 </div>
 
@@ -161,11 +162,11 @@
         $.ajax({
             url: "../getPTZ?channelNum=1",
             type: "get",
-            success: function (data) {
-                console.log(data);
-                $("#p").val(data.wpanPos);
-                $("#t").val(data.wtiltPos);
-                $("#z").val(data.wzoomPos);
+            success: function (datas) {
+                console.log(datas);
+                $("#p").val(datas.data.wpanPos);
+                $("#t").val(datas.data.wtiltPos);
+                $("#z").val(datas.data.wzoomPos);
             }
         })
     })
@@ -194,6 +195,7 @@
     })
     var defogflag = true;
     $("#Defogcfg").click(function () {
+
         if(defogflag)
         {
             $(this).val("关闭透雾");
@@ -222,6 +224,7 @@
     })
     var infrareflag = true;
     $("#Infrarecfg").click(function () {
+
         if(infrareflag)
         {
             $(this).val("关闭红外");
@@ -252,7 +255,7 @@
     var focusModeflag = true;
     $("#FocusMode").click(function () {
         if(focusModeflag) {
-            $(this).val("手动聚焦");
+            $(this).val("自动聚焦");
             focusModeflag = false;
             $.ajax({
                 url: "../enableFocusMode?channelNum=1",
@@ -264,7 +267,7 @@
         }
         else
         {
-            $(this).val("自动聚焦");
+            $(this).val("手动聚焦");
             focusModeflag = true;
             $.ajax({
                 url: "../disableFocusMode?channelNum=1",
@@ -278,7 +281,7 @@
     var heateRpwronflag = true;
     $("#HeateRpwron").click(function () {
         if(heateRpwronflag) {
-            $(this).val("开启云台加热");
+            $(this).val("关闭云台加热");
             heateRpwronflag = false;
             $.ajax({
                 url: "../enableHeateRpwron?channelNum=1",
@@ -290,7 +293,7 @@
         }
         else
         {
-            $(this).val("关闭云台加热");
+            $(this).val("开启云台加热");
             heateRpwronflag = true;
             $.ajax({
                 url: "../disableHeateRpwron?channelNum=1",
@@ -300,9 +303,33 @@
                 }
             })
         }
-
     })
-
+    var CameraDeicingflag = true;
+    $("#CameraDeicing").click(function () {
+        if(CameraDeicingflag) {
+            $(this).val("关闭镜头加热");
+            CameraDeicingflag = false;
+            $.ajax({
+                url: "../enableCameraDeicing?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+        else
+        {
+            $(this).val("开启镜头加热");
+            CameraDeicingflag = true;
+            $.ajax({
+                url: "../disableCameraDeicing?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
     $("#captureJPEGPicture").click(function () {
         var url = "http://localhost:8080/captureJPEGPicture";
         var xhr = new XMLHttpRequest();
@@ -322,6 +349,15 @@
             }
         }
         xhr.send();
+    })
+    $("#captureJPEGPicture1").click(function () {
+        $.ajax({
+            url: "../captureJPEGPicture1?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
     })
     var recordflag = true;
     $("#record").click(function () {

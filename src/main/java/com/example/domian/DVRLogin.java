@@ -1,22 +1,25 @@
 package com.example.domian;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
+
 /**
  * @ClassName: DVRLogin
- * @Description:
+ * @Description: 登录实体
  * @Author: Administrator
  * @Date: 2023年01月17日 9:19
  * @Version: 1.0
  **/
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-/**
- * 登录相机对象
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Component
+@ConfigurationProperties(prefix = "login")
+@PropertySource(value = "classpath:login.properties")
 public class DVRLogin {
     /**
      * 相机ip地址
@@ -34,6 +37,5 @@ public class DVRLogin {
      * 相机密码
      */
     private String password;
-
 }
 

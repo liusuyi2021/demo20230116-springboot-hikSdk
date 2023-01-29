@@ -2,16 +2,16 @@ package com.example.service;
 
 import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
+import com.example.domian.recordInfo;
 import com.example.util.WaterMarkUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
-import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
@@ -32,10 +32,13 @@ import static com.example.service.HCNetSDK.*;
 @Slf4j
 @Service
 public class hikSdkClinetImpl implements hikSdkClinet {
-
+    @Resource
+    minioService minio;
+    @Resource
+    DVRLogin dvrLogin;
     private static HCNetSDK hCNetSDK;
 
-    private static Map<Integer, Integer> user_real_Map = new HashMap<>();
+    private static Map<Integer, recordInfo> user_real_Map = new HashMap<>();
 
     /**
      * @描述 初始化sdk
@@ -365,6 +368,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
     }
 
     /**
+     * @return
      * @描述 获取ptz信息
      * @参数 [userId, channelNum]
      * @返回值 boolean
@@ -551,19 +555,31 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      * @修改人和其它信息
      */
     @Override
-    public boolean controlHeateRpwron(Integer userId, Integer channelNum, boolean enable) {
-//        Integer dwStop;
-//        if (enable) {
-//            dwStop = 0;//开启
-//        } else {
-//            dwStop = 1;//关闭
-//        }
-//        boolean bool = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(userId,channelNum, HEATER_PWRON,dwStop,speed);
-//        if (!bool) {
-//            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
-//        }
-//        System.out.println("设置成功");
-//        return bool;
+    public boolean controlPTHeateRpwron(Integer userId, Integer channelNum, boolean enable) {
+        Integer dwStop;
+        if (enable) {
+            dwStop = 0;//开启
+        } else {
+            dwStop = 1;//关闭
+        }
+        boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HEATER_PWRON, dwStop);
+        if (!bool) {
+            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+        }
+        System.out.println("设置成功");
+        return bool;
+    }
+
+    /**
+     * @描述 镜头加热开关
+     * @参数 [userId, channelNum, enable]
+     * @返回值 boolean
+     * @创建人 刘苏义
+     * @创建时间 2023/1/18 13:07
+     * @修改人和其它信息
+     */
+    @Override
+    public boolean controlCameraDeicing(Integer userId, Integer channelNum, boolean enable) {
         HCNetSDK.NET_DVR_DEVSERVER_CFG struDeicing = new HCNetSDK.NET_DVR_DEVSERVER_CFG();
         Pointer point = struDeicing.getPointer();
         IntByReference ibrBytesReturned = new IntByReference(0);
@@ -648,7 +664,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      *
      * @param userId
      */
-    public void picCutCate(Integer userId, Integer channelNum, String imgPath) {
+    public String picCutCate(Integer userId, Integer channelNum) {
         //图片质量
         HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
         //设置图片分辨率
@@ -658,7 +674,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         IntByReference a = new IntByReference();
         //设置图片大小
         ByteBuffer jpegBuffer = ByteBuffer.allocate(1024 * 1024);
-        File file = new File(imgPath);
+
         // 抓图到内存，单帧数据捕获并保存成JPEG存放在指定的内存空间中
         log.info("-----------这里开始封装 NET_DVR_CaptureJPEGPicture_NEW---------");
         boolean is = hCNetSDK.NET_DVR_CaptureJPEGPicture_NEW(userId, channelNum, jpeg, jpegBuffer, 1024 * 1024, a);
@@ -671,28 +687,52 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             log.info("hksdk(抓图)-结果状态值(0表示成功):" + hCNetSDK.NET_DVR_GetLastError());
             byte[] array = jpegBuffer.array();
 
+            //存储到minio
+            String BucketName = "pic";
+            String uuid = UUID.randomUUID().toString();
+            String time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String ObjectName = dvrLogin.getIp() + "/" + userId + "/" + time + "/" + uuid + ".jpeg";
+            String ContentType = "image/JPEG";
+            InputStream input = new ByteArrayInputStream(array);
+            String url = minio.uploadFile(BucketName, ObjectName, input, ContentType);
+            return url;
             //存储到本地
-            BufferedOutputStream outputStream = null;
-            try {
-                outputStream = new BufferedOutputStream(new FileOutputStream(file));
-                outputStream.write(jpegBuffer.array(), 0, a.getValue());
-                outputStream.flush();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+//            String path = "D:/pic/" + new Date().getTime() + "(" + userId + ")" + ".jpeg";
+//            File file = new File(path);
+//            if (!file.exists()) {
+//                try {
+//                    File fileParent = file.getParentFile();
+//                    if (!fileParent.exists()) {
+//                        fileParent.mkdirs();
+//                    }
+//                    file.createNewFile();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            BufferedOutputStream outputStream = null;
+//            try {
+//                outputStream = new BufferedOutputStream(new FileOutputStream(file));
+//                outputStream.write(jpegBuffer.array(), 0, a.getValue());
+//                outputStream.flush();
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } finally {
+//                if (outputStream != null) {
+//                    try {
+//                        outputStream.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
         } else {
             log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
+            return "";
         }
+       // return path;
     }
 
     /**
@@ -704,7 +744,8 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      * @修改人和其它信息
      */
     @Override
-    public void record(Integer userId, Integer channelNum, Boolean enable) {
+    public String record(Integer userId, Integer channelNum, Boolean enable) {
+        String path = "";
         //预览参数
         NET_DVR_PREVIEWINFO previewinfo = new NET_DVR_PREVIEWINFO();
         previewinfo.read();
@@ -715,49 +756,51 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         previewinfo.bBlocked = 0;//0- 非阻塞取流，1- 阻塞取流
         previewinfo.byNPQMode = 0;//NPQ模式：0- 直连模式，1-过流媒体模式
         previewinfo.write();
-        int lRealHandle = 0;
+        int lRealHandle;
         if (enable) {
             if (!user_real_Map.containsKey(userId)) {
                 lRealHandle = hCNetSDK.NET_DVR_RealPlay_V40(userId, previewinfo, null, null);
                 if (lRealHandle == -1) {
                     int iErr = hCNetSDK.NET_DVR_GetLastError();
                     System.out.println("取流失败" + iErr);
-                    return;
+                    return "";
                 }
                 System.out.println("取流成功");
-                user_real_Map.put(userId,lRealHandle);
-            }
-            lRealHandle = user_real_Map.get(userId);
-
-            File file = new File("D:/Download/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
-            String path = "";
-            if (!file.exists()) {
-                try {
-                    File fileParent = file.getParentFile();
-                    if (!fileParent.exists()) {
-                        fileParent.mkdirs();
+                File file = new File("D:/record/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
+                if (!file.exists()) {
+                    try {
+                        File fileParent = file.getParentFile();
+                        if (!fileParent.exists()) {
+                            fileParent.mkdirs();
+                        }
+                        file.createNewFile();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    file.createNewFile();
-                } catch (Exception e) {
+                }
+                try {
+                    path = file.getCanonicalPath();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+                recordInfo info = new recordInfo();
+                info.setLRealHandle(lRealHandle);
+                info.setRecordPath(path);
+                user_real_Map.put(userId, info);
             }
-            try {
-                path = file.getCanonicalPath();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (!hCNetSDK.NET_DVR_SaveRealData_V30(lRealHandle, 1, path)) {
+            recordInfo info = user_real_Map.get(userId);
+            if (!hCNetSDK.NET_DVR_SaveRealData_V30(info.getLRealHandle(), 1, info.getRecordPath())) {
                 log.error("保存视频文件到文件夹失败 错误码为:  " + hCNetSDK.NET_DVR_GetLastError());
-                return;
+                return "";
             }
             System.out.println("录像开始");
+            return info.getRecordPath();
         } else {
-            lRealHandle = user_real_Map.get(userId);
-            hCNetSDK.NET_DVR_StopRealPlay(lRealHandle);
+            recordInfo info = user_real_Map.get(userId);
+            hCNetSDK.NET_DVR_StopRealPlay(info.getLRealHandle());
             user_real_Map.remove(userId);
             System.out.println("录像停止");
+            return info.getRecordPath();
         }
     }
 }

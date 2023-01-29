@@ -3,9 +3,11 @@ package com.example.controller;
 import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
 import com.example.service.hikSdkClinetImpl;
+import com.example.util.CommonResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -21,10 +23,12 @@ import java.util.Map;
  **/
 @Controller
 public class sdkController {
+    private static Integer UserId;
+
     @Resource
     private hikSdkClinetImpl sdk;
-
-    private static Integer UserId;
+    @Resource
+    DVRLogin login;
 
     @PostConstruct
     private void initHCNetSDK() {
@@ -39,18 +43,7 @@ public class sdkController {
     @RequestMapping("/login")
     private @ResponseBody
     String loginIndex() {
-        DVRLogin DVR = new DVRLogin();
-        DVR.setIp("112.98.126.2");
-        //DVR.setPort((short) 2018);
-        DVR.setUserName("admin");
-        DVR.setPassword("ardkj12345");
-        DVR.setPort((short) 2148);
-
-//        DVR.setIp("192.168.1.104");
-//        DVR.setPort((short) 8000);
-//        DVR.setUserName("admin");
-//        DVR.setPassword("xzx12345");
-        UserId = sdk.login(DVR);
+        UserId = sdk.login(login);
         System.out.println(UserId);
         return UserId.toString();
     }
@@ -143,104 +136,176 @@ public class sdkController {
 
     @RequestMapping("/getPTZ")
     private @ResponseBody
-    PTZ GetPTZ(Integer channelNum) {
+    CommonResult<PTZ> GetPTZ(Integer channelNum) {
         PTZ ptz = sdk.getPtz(UserId, channelNum);
         Map<String, String> map = new HashMap<>();
         map.put("p", ptz.getWPanPos());
         map.put("t", ptz.getWTiltPos());
         map.put("z", ptz.getWZoomPos());
-        return ptz;
+        return CommonResult.success(ptz);
     }
 
     @RequestMapping("/setPTZ")
     private @ResponseBody
-    String SetPTZ(Integer channelNum, String p, String t, String z) {
+    CommonResult<PTZ> SetPTZ(Integer channelNum, String p, String t, String z) {
         PTZ ptz = new PTZ();
         ptz.setWPanPos(p);
         ptz.setWTiltPos(t);
         ptz.setWZoomPos(z);
-        sdk.setPtz(UserId, channelNum, ptz);
-        return "设置ptz成功！";
+        boolean b = sdk.setPtz(UserId, channelNum, ptz);
+        if (b) {
+            return CommonResult.success(ptz);
+        } else {
+            return CommonResult.failed("设置ptz失败！");
+        }
     }
 
     @RequestMapping("/enableWiperPwron")
     private @ResponseBody
-    String controlWiperPwron(Integer channelNum, Integer speed) {
-        sdk.controlWiperPwron(UserId, channelNum, speed, true);
-        return "开启雨刷成功！";
+    CommonResult<String> controlWiperPwron(Integer channelNum, Integer speed) {
+        boolean b = sdk.controlWiperPwron(UserId, channelNum, speed, true);
+        if (b) {
+            return CommonResult.success("开启雨刷成功！");
+        } else {
+            return CommonResult.failed("开启雨刷失败！");
+        }
     }
 
     @RequestMapping("/enableDefogcfg")
     private @ResponseBody
-    String EnableDefogcfg(Integer channelNum) {
-        sdk.controlDefogcfg(UserId, channelNum, true);
-        return "开启透雾成功！";
+    CommonResult<String> EnableDefogcfg(Integer channelNum) {
+        boolean b = sdk.controlDefogcfg(UserId, channelNum, true);
+        if (b) {
+            return CommonResult.success("开启透雾成功！");
+        } else {
+            return CommonResult.failed("开启透雾失败！");
+        }
     }
 
     @RequestMapping("/disableDefogcfg")
     private @ResponseBody
-    String DisableDefogcfg(Integer channelNum) {
-        sdk.controlDefogcfg(UserId, channelNum, false);
-        return "关闭透雾成功！";
+    CommonResult<String> DisableDefogcfg(Integer channelNum) {
+        boolean b = sdk.controlDefogcfg(UserId, channelNum, false);
+        if (b) {
+            return CommonResult.success("关闭透雾成功！");
+        } else {
+            return CommonResult.failed("关闭透雾失败！");
+        }
     }
 
     @RequestMapping("/enableInfrarecfg")
     private @ResponseBody
-    String enableInfrarecfg(Integer channelNum) {
-        sdk.controlInfrarecfg(UserId, channelNum, true);
-        return "开启红外成功！";
+    CommonResult<String> enableInfrarecfg(Integer channelNum) {
+        boolean b = sdk.controlInfrarecfg(UserId, channelNum, true);
+        if (b) {
+            return CommonResult.success("开启红外成功！");
+        } else {
+            return CommonResult.failed("开启红外失败！");
+        }
     }
+
     @RequestMapping("/disableInfrarecfg")
     private @ResponseBody
-    String disableInfrarecfg(Integer channelNum) {
-        sdk.controlInfrarecfg(UserId, channelNum, false);
-        return "关闭红外成功！";
+    CommonResult<String> disableInfrarecfg(Integer channelNum) {
+        boolean b = sdk.controlInfrarecfg(UserId, channelNum, false);
+        if (b) {
+            return CommonResult.success("关闭红外成功！");
+        } else {
+            return CommonResult.failed("关闭红外失败！");
+        }
     }
+
     @RequestMapping("/enableFocusMode")
     private @ResponseBody
-    String enableFocusMode(Integer channelNum) {
-        sdk.controlFocusMode(UserId, channelNum, true);
-        return "开启手动聚焦成功！";
+    CommonResult<String> enableFocusMode(Integer channelNum) {
+        boolean b = sdk.controlFocusMode(UserId, channelNum, true);
+        if (b) {
+            return CommonResult.success("开启手动聚焦成功！");
+        } else {
+            return CommonResult.failed("开启手动聚焦失败！");
+        }
     }
+
     @RequestMapping("/disableFocusMode")
     private @ResponseBody
-    String disableFocusMode(Integer channelNum) {
-        sdk.controlFocusMode(UserId, channelNum, false);
-        return "开启自动聚焦成功！";
+    CommonResult<String> disableFocusMode(Integer channelNum) {
+        boolean b = sdk.controlFocusMode(UserId, channelNum, false);
+        if (b) {
+            return CommonResult.success("开启自动聚焦成功！");
+        } else {
+            return CommonResult.failed("开启自动聚焦失败！");
+        }
     }
+
     @RequestMapping("/enableHeateRpwron")
     private @ResponseBody
-    String enableHeateRpwron(Integer channelNum) {
-        sdk.controlHeateRpwron(UserId, channelNum,true);
-        return "开启云台加热成功！";
+    CommonResult<String> enableHeateRpwron(Integer channelNum) {
+        boolean b = sdk.controlPTHeateRpwron(UserId, channelNum, true);
+        if (b) {
+            return CommonResult.success("开启云台加热成功！");
+        } else {
+            return CommonResult.failed("开启云台加热失败！");
+        }
     }
+
     @RequestMapping("/disableHeateRpwron")
     private @ResponseBody
-    String disableHeateRpwron(Integer channelNum) {
-        sdk.controlHeateRpwron(UserId, channelNum,false);
-        return "关闭云台加热成功！";
+    CommonResult<String> disableHeateRpwron(Integer channelNum) {
+        boolean b = sdk.controlPTHeateRpwron(UserId, channelNum, false);
+        if (b) {
+            return CommonResult.success("关闭云台加热成功！");
+        } else {
+            return CommonResult.failed("关闭云台加热失败！");
+        }
+    }
+
+    @RequestMapping("/enableCameraDeicing")
+    private @ResponseBody
+    CommonResult<String> enableCameraDeicing(Integer channelNum) {
+        boolean b = sdk.controlCameraDeicing(UserId, channelNum, true);
+        if (b) {
+            return CommonResult.success("开启镜头加热成功！");
+        } else {
+            return CommonResult.failed("开启镜头加热失败！");
+        }
+    }
+
+    @RequestMapping("/disableCameraDeicing")
+    private @ResponseBody
+    CommonResult<String> disableCameraDeicing(Integer channelNum) {
+        boolean b = sdk.controlCameraDeicing(UserId, channelNum, false);
+        if (b) {
+            return CommonResult.success("关闭镜头加热成功！");
+        } else {
+            return CommonResult.failed("关闭镜头加热失败！");
+        }
     }
 
     @RequestMapping("/captureJPEGPicture")
     private @ResponseBody
-    String  captureJPEGPicture(HttpServletResponse response) {
+    String captureJPEGPicture(HttpServletResponse response) {
         sdk.captureJPEGPicture(UserId, response);
         return "图片上传成功";
     }
 
     @RequestMapping("/captureJPEGPicture1")
-    private  @ResponseBody String captureJPEGPicture1(Integer channelNum, String imagePath) {
-        sdk.picCutCate(UserId, channelNum, imagePath);
-        return "图片保存成功";
+    private @ResponseBody
+    CommonResult<String> captureJPEGPicture1(Integer channelNum) {
+        String path = sdk.picCutCate(UserId, channelNum);
+        return CommonResult.success(path);
     }
+
     @RequestMapping("/recordStart")
-    private  @ResponseBody String recordStart(Integer channelNum){
-        sdk.record(UserId, channelNum,true);
-        return "录像保存成功";
+    private @ResponseBody
+    CommonResult<String> recordStart(Integer channelNum) {
+        String path = sdk.record(UserId, channelNum, true);
+        return CommonResult.success("录像开始" + path);
     }
+
     @RequestMapping("/recordStop")
-    private  @ResponseBody String recordStop(Integer channelNum){
-        sdk.record(UserId, channelNum,false);
-        return "录像保存成功";
+    private @ResponseBody
+    CommonResult<String> recordStop(Integer channelNum) {
+        String path = sdk.record(UserId, channelNum, false);
+        return CommonResult.success("录像结束" + path);
     }
 }

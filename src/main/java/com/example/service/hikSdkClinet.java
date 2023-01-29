@@ -57,13 +57,14 @@ public interface hikSdkClinet {
     boolean controlFocusMode(Integer userId, Integer channelNum, boolean enable);
 
     //云台加热
-    boolean controlHeateRpwron(Integer userId, Integer channelNum, boolean enable);
-
+    boolean controlPTHeateRpwron(Integer userId, Integer channelNum, boolean enable);
+    //镜头除冰
+    public boolean controlCameraDeicing(Integer userId, Integer channelNum, boolean enable);
     //抓图-返给前端二进制流
     void captureJPEGPicture(Integer userId, HttpServletResponse response);
 
     //抓图-存本地
-    void picCutCate(Integer userId, Integer channelNum, String imgPath);
+    String picCutCate(Integer userId, Integer channelNum);
 
     //ptz 三坐标
     PTZ getPtz(Integer userId, Integer channelNum);
@@ -71,5 +72,5 @@ public interface hikSdkClinet {
     boolean setPtz(Integer userId, Integer channelNum, PTZ ptz);
 
     //手动录像
-    void record(Integer userId, Integer channelNum, Boolean enable);
+    String record(Integer userId, Integer channelNum, Boolean enable);
 }

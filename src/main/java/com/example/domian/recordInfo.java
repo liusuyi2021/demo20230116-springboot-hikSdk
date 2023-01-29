@@ -5,17 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @ClassName: PTZ
- * @Description:ptz实体
+ * @ClassName: recordInfo
+ * @Description:录像实体-保存预览id和录像路径
  * @Author: Administrator
- * @Date: 2023年01月18日 14:23
+ * @Date: 2023年01月28日 9:24
  * @Version: 1.0
  **/
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PTZ {
-    String wPanPos;
-    String wTiltPos;
-    String wZoomPos;
+public class recordInfo {
+    Integer lRealHandle;
+    String recordPath;
 }

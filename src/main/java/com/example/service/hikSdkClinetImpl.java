@@ -395,8 +395,8 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             String p = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wPanPos)) / 10);
             String t = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wTiltPos)) / 10);
             String z = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wZoomPos)) / 10);
-            System.out.println("T垂直参数为: " + p);
-            System.out.println("P水平参数为: " + t);
+            System.out.println("T垂直参数为: " + t);
+            System.out.println("P水平参数为: " + p);
             System.out.println("Z变倍参数为: " + z);
             ptz.setWPanPos(p);
             ptz.setWTiltPos(t);

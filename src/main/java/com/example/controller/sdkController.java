@@ -4,6 +4,7 @@ import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
 import com.example.service.hikSdkClinetImpl;
 import com.example.util.CommonResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,6 +23,7 @@ import java.util.Map;
  * @Version: 1.0
  **/
 @Controller
+@Slf4j(topic = "hiksdk")
 public class sdkController {
     private static Integer UserId;
 
@@ -42,96 +44,87 @@ public class sdkController {
 
     @RequestMapping("/login")
     private @ResponseBody
-    String loginIndex() {
+    CommonResult<String> loginIndex() {
         UserId = sdk.login(login);
-        System.out.println(UserId);
-        return UserId.toString();
+        log.info("相机登录成功：" + UserId);
+        return CommonResult.success("相机登录成功：" + UserId);
     }
 
     @RequestMapping("/up")
     private @ResponseBody
-    String up(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlUp(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlUp(UserId, channelNum, speed, false);
-        return "up";
+    CommonResult<String> up(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlUp(UserId, channelNum, speed, enable);
+        return CommonResult.success("up");
     }
-
     @RequestMapping("/down")
     private @ResponseBody
-    String down(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlDown(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlDown(UserId, channelNum, speed, false);
-        return "down";
+    CommonResult<String> down(Integer channelNum, Integer speed,boolean enable) {
+        sdk.controlDown(UserId, channelNum, speed, enable);
+        return CommonResult.success("down");
     }
 
     @RequestMapping("/left")
     private @ResponseBody
-    String left(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlLeft(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlLeft(UserId, channelNum, speed, false);
-        return "left";
+    CommonResult<String> left(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlLeft(UserId, channelNum, speed, enable);
+        return CommonResult.success("left");
     }
 
     @RequestMapping("/right")
     private @ResponseBody
-    String right(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlRight(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlRight(UserId, channelNum, speed, false);
-        return "right";
+    CommonResult<String> right(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlRight(UserId, channelNum, speed, enable);
+        return CommonResult.success("right");
     }
 
     @RequestMapping("/controlZoomIn")
     private @ResponseBody
-    String controlZoomIn(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlZoomIn(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlZoomIn(UserId, channelNum, speed, false);
-        return "controlZoomIn";
+    CommonResult<String> controlZoomIn(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlZoomIn(UserId, channelNum, speed, enable);
+        return CommonResult.success("controlZoomIn");
     }
 
-    @RequestMapping("/controlZoomOut")
+    @RequestMapping("/ZoomOut")
     private @ResponseBody
-    String controlZoomOut(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlZoomOut(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlZoomOut(UserId, channelNum, speed, false);
-        return "controlZoomOut";
+    CommonResult<String> controlZoomOut(Integer channelNum, Integer speed,boolean enable) {
+        sdk.controlZoomOut(UserId, channelNum, speed, enable);
+        return CommonResult.success("ZoomOut");
     }
 
     @RequestMapping("/controlFocusNear")
     private @ResponseBody
-    String controlFocusNear(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlFocusNear(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlFocusNear(UserId, channelNum, speed, false);
-        return "controlFocusNear";
+    CommonResult<String> controlFocusNear(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlFocusNear(UserId, channelNum, speed, enable);
+        return CommonResult.success("FocusNear");
     }
 
     @RequestMapping("/controlFocusFar")
     private @ResponseBody
-    String controlFocusFar(Integer channelNum, Integer speed) throws InterruptedException {
-        sdk.controlFocusFar(UserId, channelNum, speed, true);
-        Thread.sleep(200);
-        sdk.controlFocusFar(UserId, channelNum, speed, false);
-        return "controlZoomOut";
+    CommonResult<String> controlFocusFar(Integer channelNum, Integer speed,boolean enable)  {
+        sdk.controlFocusFar(UserId, channelNum, speed, enable);
+        return CommonResult.success("FocusFar");
     }
 
     @RequestMapping("/gotoPreset")
     private @ResponseBody
-    String gotoPreset(Integer channelNum, Integer presetIndex) {
-        sdk.gotoPreset(UserId, channelNum, presetIndex);
-        return "转到预置点" + presetIndex + "成功！";
+    CommonResult<String> gotoPreset(Integer channelNum, Integer presetIndex) {
+        boolean b = sdk.gotoPreset(UserId, channelNum, presetIndex);
+        if (b) {
+            return CommonResult.success("转到预置点" + presetIndex + "成功！");
+        } else {
+            return CommonResult.success("转到预置点" + presetIndex + "失败！");
+        }
     }
 
     @RequestMapping("/setPreset")
     private @ResponseBody
-    String setPreset(Integer channelNum, Integer presetIndex) {
-        sdk.setPreset(UserId, channelNum, presetIndex);
-        return "设置预置点" + presetIndex + "成功！";
+    CommonResult<String> setPreset(Integer channelNum, Integer presetIndex) {
+        boolean b = sdk.setPreset(UserId, channelNum, presetIndex);
+        if (b) {
+            return CommonResult.success("设置预置点" + presetIndex + "成功！");
+        } else {
+            return CommonResult.success("设置预置点" + presetIndex + "失败！");
+        }
     }
 
     @RequestMapping("/getPTZ")

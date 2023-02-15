@@ -17,7 +17,7 @@ import java.io.InputStream;
  * @Version: 1.0
  **/
 @Service
-@Slf4j
+@Slf4j(topic="minio")
 public class minioServiceImpl implements minioService {
     @Resource
     private MinioUtil minioUtil;
@@ -29,6 +29,7 @@ public class minioServiceImpl implements minioService {
             boolean b = minioUtil.putObject(BucketName, ObjectName, stream, stream.available(), contextType);
             if (b) {
                 url = minioUtil.presignedGetObject(BucketName, ObjectName, 5);
+                log.info("上传文件成功!"+url);
             }
         } catch (Exception ex) {
             log.error(ex.getMessage());

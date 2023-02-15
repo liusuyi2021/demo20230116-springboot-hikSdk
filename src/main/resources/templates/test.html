@@ -66,72 +66,147 @@
             }
         })
     });
-    $("#up").click(function () {
+    //云台上下左右
+    $("#up").mousedown(function () {
         $.ajax({
-            url: "../up?channelNum=1&speed=8",
+            url: "../up?channelNum=1&speed=8&enable=true",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#down").click(function () {
+    $("#up").mouseup(function () {
         $.ajax({
-            url: "../down?channelNum=1&speed=8",
+            url: "../up?channelNum=1&speed=8&enable=false",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#left").click(function () {
+    $("#down").mousedown(function () {
         $.ajax({
-            url: "../left?channelNum=1&speed=8",
+            url: "../down?channelNum=1&speed=8&enable=true",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#right").click(function () {
+    $("#down").mouseup(function () {
         $.ajax({
-            url: "../right?channelNum=1&speed=8",
+            url: "../down?channelNum=1&speed=8&enable=false",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#controlZoomIn").click(function () {
+    $("#left").mousedown(function () {
         $.ajax({
-            url: "../controlZoomIn?channelNum=1&speed=8",
+            url: "../left?channelNum=1&speed=8&enable=true",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#controlZoomOut").click(function () {
+    $("#left").mouseup(function () {
         $.ajax({
-            url: "../controlZoomOut?channelNum=1&speed=8",
+            url: "../left?channelNum=1&speed=8&enable=false",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#controlFocusNear").click(function () {
+    $("#right").mousedown(function () {
         $.ajax({
-            url: "../controlFocusNear?channelNum=1&speed=8",
+            url: "../right?channelNum=1&speed=8&enable=true",
             type: "get",
             success: function (data) {
                 console.log(data);
             }
         })
     })
-    $("#controlFocusFar").click(function () {
+    $("#right").mouseup(function () {
         $.ajax({
-            url: "../controlFocusFar?channelNum=1&speed=8",
+            url: "../right?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    //变倍
+    $("#controlZoomIn").mousedown(function () {
+        $.ajax({
+            url: "../controlZoomIn?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomIn").mouseup(function () {
+        $.ajax({
+            url: "../controlZoomIn?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomOut").mousedown(function () {
+        $.ajax({
+            url: "../controlZoomOut?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomOut").mouseup(function () {
+        $.ajax({
+            url: "../controlZoomOut?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    //变焦
+    $("#controlFocusNear").mousedown(function () {
+        $.ajax({
+            url: "../controlFocusNear?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusNear").mouseup(function () {
+        $.ajax({
+            url: "../controlFocusNear?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusFar").mousedown(function () {
+        $.ajax({
+            url: "../controlFocusFar?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusFar").mouseup(function () {
+        $.ajax({
+            url: "../controlFocusFar?channelNum=1&speed=8&enable=false",
             type: "get",
             success: function (data) {
                 console.log(data);
@@ -157,7 +232,6 @@
             }
         })
     })
-
     $("#getPTZ").click(function () {
         $.ajax({
             url: "../getPTZ?channelNum=1",

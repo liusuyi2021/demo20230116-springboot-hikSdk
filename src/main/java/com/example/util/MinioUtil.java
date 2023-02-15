@@ -22,7 +22,7 @@ import java.io.InputStream;
 /**
  * minio 工具类，提供上传、下载方法
  */
-@Slf4j
+@Slf4j(topic = "minio")
 @Component
 @RequiredArgsConstructor
 public class MinioUtil {
@@ -55,13 +55,13 @@ public class MinioUtil {
     public boolean uploadObject(String bulkName, String objectName, String localFilePathName) {
         try {
             if (!isBuckExist(bulkName)) {
-                System.out.println(bulkName + "不存在");
-                // return false;
+                log.debug(bulkName + "不存在");
+                 return false;
             }
             File file = new File(localFilePathName);
             if (!file.exists()) {
-                System.out.println("文件不存在");
-                // return false;
+                log.debug("文件不存在");
+                 return false;
             }
             ObjectWriteResponse objectWriteResponse = minioClient.uploadObject(UploadObjectArgs.builder().bucket(bulkName).object(objectName).filename(localFilePathName).build());
             return true;

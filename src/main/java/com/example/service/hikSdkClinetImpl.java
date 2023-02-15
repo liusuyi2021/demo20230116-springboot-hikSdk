@@ -29,15 +29,17 @@ import static com.example.service.HCNetSDK.*;
  * @Date: 2023年01月17日 11:25
  * @Version: 1.0
  **/
-@Slf4j
+@Slf4j(topic = "hiksdk")
 @Service
 public class hikSdkClinetImpl implements hikSdkClinet {
     @Resource
     minioService minio;
     @Resource
     DVRLogin dvrLogin;
-    private static HCNetSDK hCNetSDK;
 
+    private static HCNetSDK hCNetSDK;
+    // 报警回调函数实现
+    public static HCNetSDK.FMSGCallBack_V31 fMSFCallBack_V31;
     private static Map<Integer, recordInfo> user_real_Map = new HashMap<>();
 
     /**
@@ -107,6 +109,8 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             hCNetSDK.NET_DVR_Cleanup();
             log.error("登录失败");
         }
+        // 设置报警回调函数，建立报警上传通道（启用布防）
+        int lAlarmHandle = setupAlarmChan(lUserID, -1);
         return lUserID;
     }
 
@@ -321,7 +325,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         }
         boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HCNetSDK.WIPER_PWRON, dwStop);
         if (!bool) {
-            System.out.println("控制失败,请稍后重试");
+            log.error("控制失败,请稍后重试");
         }
         return bool;
     }
@@ -348,7 +352,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
     public boolean setPreset(Integer userId, Integer channelNum, Integer PresetIndex) {
         boolean bool = hCNetSDK.NET_DVR_PTZPreset_Other(userId, channelNum, SET_PRESET, PresetIndex);
         if (!bool) {
-            System.out.println("预置点设置失败!" + "登录ID：" + userId + "通道号：" + channelNum + "预置点号：" + PresetIndex);
+            log.error("预置点设置失败!" + "登录ID：" + userId + "通道号：" + channelNum + "预置点号：" + PresetIndex);
         }
         return bool;
     }
@@ -362,7 +366,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
     public boolean gotoPreset(Integer userId, Integer channelNum, Integer PresetIndex) {
         boolean bool = hCNetSDK.NET_DVR_PTZPreset_Other(userId, channelNum, GOTO_PRESET, PresetIndex);
         if (!bool) {
-            System.out.println("预置点设置失败!" + "登录ID：" + userId + "通道号：" + channelNum + "预置点号：" + PresetIndex);
+            log.error("预置点设置失败!" + "登录ID：" + userId + "通道号：" + channelNum + "预置点号：" + PresetIndex);
         }
         return bool;
     }
@@ -395,9 +399,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             String p = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wPanPos)) / 10);
             String t = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wTiltPos)) / 10);
             String z = df.format((float) Integer.parseInt(Integer.toHexString(m_ptzPosCurrent.wZoomPos)) / 10);
-            System.out.println("T垂直参数为: " + t);
-            System.out.println("P水平参数为: " + p);
-            System.out.println("Z变倍参数为: " + z);
+            log.info("T垂直参数为: " + p + "P水平参数为: " + t + "Z变倍参数为: " + z);
             ptz.setWPanPos(p);
             ptz.setWTiltPos(t);
             ptz.setWZoomPos(z);
@@ -425,7 +427,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_PTZPOS, channelNum, point, m_ptzPosCurrent.size());
         if (!bool) {
             int i = hCNetSDK.NET_DVR_GetLastError();
-            System.out.println("错误码：" + i);
+            log.error("错误码：" + i);
         }
         return bool;
     }
@@ -445,10 +447,10 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         IntByReference ibrBytesReturned = new IntByReference(0);
         boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_CCDPARAMCFG_EX, channelNum, point, struCameraParam.size(), ibrBytesReturned);
         if (!b_GetCameraParam) {
-            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
         struCameraParam.read();
-        System.out.println("是否开启透雾：" + struCameraParam.struDefogCfg.byMode);
+        log.info("是否开启透雾：" + struCameraParam.struDefogCfg.byMode);
 
         NET_DVR_DEFOGCFG defogcfg = new NET_DVR_DEFOGCFG();
         if (enable) {
@@ -458,14 +460,12 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             defogcfg.byMode = 0;//0-不启用 1-自动模式 2-常开模式
         }
         struCameraParam.struDefogCfg = defogcfg;
-        //struCameraParam.struCorridorMode.byEnableCorridorMode = 1;
         struCameraParam.write();
         boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, struCameraParam.size());
         if (!bool) {
-            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
-        // struCameraParam.read();
-        System.out.println("设置成功");
+        log.info("设置透雾成功");
         return bool;
     }
 
@@ -485,10 +485,10 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         IntByReference ibrBytesReturned = new IntByReference(0);
         boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_CCDPARAMCFG_EX, channelNum, point, struDayNigh.size(), ibrBytesReturned);
         if (!b_GetCameraParam) {
-            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
         struDayNigh.read();
-        System.out.println("是否开启夜视：" + struDayNigh.struDayNight.byDayNightFilterType);
+        log.info("是否开启夜视：" + struDayNigh.struDayNight.byDayNightFilterType);
 
         HCNetSDK.NET_DVR_DAYNIGHT daynight = new HCNetSDK.NET_DVR_DAYNIGHT();
         if (enable) {
@@ -500,13 +500,12 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         daynight.bySwitchScheduleEnabled = 1;
         daynight.byDayNightFilterTime = 60;
         struDayNigh.struDayNight = daynight;
-        // struDayNigh.struCorridorMode.byEnableCorridorMode = 1;
         struDayNigh.write();
         boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_CCDPARAMCFG_EX, channelNum, point, struDayNigh.size());
         if (!bool) {
-            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
-        System.out.println("设置成功");
+        log.info("设置夜视成功");
         return bool;
     }
 
@@ -564,9 +563,9 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         }
         boolean bool = hCNetSDK.NET_DVR_PTZControl_Other(userId, channelNum, HEATER_PWRON, dwStop);
         if (!bool) {
-            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
-        System.out.println("设置成功");
+        log.info("设置云台加热成功");
         return bool;
     }
 
@@ -585,10 +584,10 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         IntByReference ibrBytesReturned = new IntByReference(0);
         boolean b_GetCameraParam = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_DEVSERVER_CFG, channelNum, point, struDeicing.size(), ibrBytesReturned);
         if (!b_GetCameraParam) {
-            System.out.println("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("获取前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
         struDeicing.read();
-        System.out.println("是否开启除冰：" + struDeicing.byEnableDeicing);
+        log.info("是否开启除冰：" + struDeicing.byEnableDeicing);
 
         if (enable) {
             struDeicing.byEnableDeicing = 1;//开启
@@ -598,9 +597,9 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         struDeicing.write();
         boolean bool = hCNetSDK.NET_DVR_SetDVRConfig(userId, NET_DVR_SET_DEVSERVER_CFG, channelNum, point, struDeicing.size());
         if (!bool) {
-            System.out.println("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            log.error("设置前端参数失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
-        System.out.println("设置成功");
+        log.info("设置镜头除冰成功");
         return bool;
     }
 
@@ -614,7 +613,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         HCNetSDK.NET_DVR_WORKSTATE_V30 devwork = new HCNetSDK.NET_DVR_WORKSTATE_V30();
         if (!hCNetSDK.NET_DVR_GetDVRWorkState_V30(userId, devwork)) {
             // 返回Boolean值，判断是否获取设备能力
-            System.out.println("抓图失败，请稍后重试");
+            log.error("抓图失败，请稍后重试");
         }
         //图片质量
         HCNetSDK.NET_DVR_JPEGPARA jpeg = new HCNetSDK.NET_DVR_JPEGPARA();
@@ -647,12 +646,12 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("抓图失败，请稍后重试");
+            log.error("抓图失败，请稍后重试");
         } finally {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                System.out.println("抓图失败，请稍后重试");
+                log.error("抓图失败，请稍后重试");
             }
         }
         log.info("-----------处理完成截图数据----------");
@@ -689,8 +688,8 @@ public class hikSdkClinetImpl implements hikSdkClinet {
 
             //存储到minio
             String BucketName = "pic";
-            String uuid = UUID.randomUUID().toString();
-            String time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+            String time = new SimpleDateFormat("yyyyMMdd").format(new Date());
             String ObjectName = dvrLogin.getIp() + "/" + userId + "/" + time + "/" + uuid + ".jpeg";
             String ContentType = "image/JPEG";
             InputStream input = new ByteArrayInputStream(array);
@@ -732,7 +731,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
             return "";
         }
-       // return path;
+        // return path;
     }
 
     /**
@@ -762,11 +761,12 @@ public class hikSdkClinetImpl implements hikSdkClinet {
                 lRealHandle = hCNetSDK.NET_DVR_RealPlay_V40(userId, previewinfo, null, null);
                 if (lRealHandle == -1) {
                     int iErr = hCNetSDK.NET_DVR_GetLastError();
-                    System.out.println("取流失败" + iErr);
+                    log.error("取流失败" + iErr);
                     return "";
                 }
-                System.out.println("取流成功");
-                File file = new File("D:/record/" + new Date().getTime() + "(" + userId + ")" + ".mp4");
+                log.info("取流成功");
+
+                File file = new File("D:/record/temp.mp4");
                 if (!file.exists()) {
                     try {
                         File fileParent = file.getParentFile();
@@ -793,14 +793,89 @@ public class hikSdkClinetImpl implements hikSdkClinet {
                 log.error("保存视频文件到文件夹失败 错误码为:  " + hCNetSDK.NET_DVR_GetLastError());
                 return "";
             }
-            System.out.println("录像开始");
+            log.info("录像开始");
             return info.getRecordPath();
         } else {
             recordInfo info = user_real_Map.get(userId);
             hCNetSDK.NET_DVR_StopRealPlay(info.getLRealHandle());
+            log.info("录像停止");
+            //存入minio
+            String BucketName = "record";
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+            String time = new SimpleDateFormat("yyyyMMdd").format(new Date());
+            String ObjectName = dvrLogin.getIp() + "/" + userId + "/" + time + "/" + uuid + ".mp4";
+            String ContentType = "video/MP4";
+            FileInputStream stream = null;
+            try {
+                stream = new FileInputStream(info.getRecordPath());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            String url = minio.uploadFile(BucketName, ObjectName, stream, ContentType);
             user_real_Map.remove(userId);
-            System.out.println("录像停止");
-            return info.getRecordPath();
+            return url;
         }
+    }
+
+
+    /**
+     * 建立布防上传通道，用于传输数据
+     *
+     * @param lUserID      唯一标识符
+     * @param lAlarmHandle 报警处理器
+     */
+    public int setupAlarmChan(int lUserID, int lAlarmHandle) {
+        // 根据设备注册生成的lUserID建立布防的上传通道，即数据的上传通道
+        if (lUserID == -1) {
+            log.info("请先注册");
+            return lUserID;
+        }
+        if (lAlarmHandle < 0) {
+            // 设备尚未布防,需要先进行布防
+            if (fMSFCallBack_V31 == null) {
+                fMSFCallBack_V31 = new FMSGCallBack();
+                Pointer pUser = null;
+                if (!hCNetSDK.NET_DVR_SetDVRMessageCallBack_V31(fMSFCallBack_V31, pUser)) {
+                    log.info("设置回调函数失败!", hCNetSDK.NET_DVR_GetLastError());
+                }
+            }
+            // 这里需要对设备进行相应的参数设置，不设置或设置错误都会导致设备注册失败
+            HCNetSDK.NET_DVR_SETUPALARM_PARAM m_strAlarmInfo = new HCNetSDK.NET_DVR_SETUPALARM_PARAM();
+            m_strAlarmInfo.dwSize = m_strAlarmInfo.size();
+            // 智能交通布防优先级：0 - 一等级（高），1 - 二等级（中），2 - 三等级（低）
+            m_strAlarmInfo.byLevel = 1;
+            // 智能交通报警信息上传类型：0 - 老报警信息（NET_DVR_PLATE_RESULT）, 1 - 新报警信息(NET_ITS_PLATE_RESULT)
+            m_strAlarmInfo.byAlarmInfoType = 1;
+            // 布防类型(仅针对门禁主机、人证设备)：0 - 客户端布防(会断网续传)，1 - 实时布防(只上传实时数据)
+            m_strAlarmInfo.byDeployType = 1;
+            // 抓拍，这个类型要设置为 0 ，最重要的一点设置
+            m_strAlarmInfo.byFaceAlarmDetection =0;
+            // 报警图片数据类型 123位 都是1 url传输
+            m_strAlarmInfo.byAlarmTypeURL=7;
+            m_strAlarmInfo.write();
+            // 布防成功，返回布防成功的数据传输通道号
+            lAlarmHandle = hCNetSDK.NET_DVR_SetupAlarmChan_V41(lUserID, m_strAlarmInfo);
+            if (lAlarmHandle == -1) {
+                log.info("设备布防失败，错误码=========={}", hCNetSDK.NET_DVR_GetLastError());
+                // 注销 释放sdk资源
+                logout(lUserID);
+                return lAlarmHandle;
+            } else {
+                log.info("设备布防成功");
+                return lAlarmHandle;
+            }
+        }
+        return lAlarmHandle;
+    }
+    /**
+     * 注销
+     *
+     * @param lUserID 设备注册成功唯一标识符
+     */
+    public void logout(int lUserID) {
+        // 注销
+        hCNetSDK.NET_DVR_Logout(lUserID);
+        // 释放sdk资源
+        hCNetSDK.NET_DVR_Cleanup();
     }
 }

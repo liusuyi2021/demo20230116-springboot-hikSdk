@@ -73,4 +73,5 @@ public interface hikSdkClinet {
 
     //手动录像
     String record(Integer userId, Integer channelNum, Boolean enable);
+
 }

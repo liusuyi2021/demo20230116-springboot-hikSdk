@@ -19,9 +19,9 @@
     <dependencies>
         <!--海康录像机二次开发依赖jar包-->
         <dependency>
-            <groupId>net.java.dev.jna</groupId>
+            <groupId>net.java.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>3.0.9</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>net.java.examples</groupId>

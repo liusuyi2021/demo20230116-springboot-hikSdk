@@ -6,6 +6,7 @@ import com.sun.jna.examples.win32.W32API.HWND;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
+import lombok.Getter;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -4866,6 +4867,50 @@ DVR实现巡航数据结构
         public NET_VCA_FILTER_STRATEGY struFilterStrategy;  //尺寸过滤策略
         public NET_VCA_RULE_TRIGGER_PARAM struTriggerParam; //规则触发参数
         public byte[] byRes = new byte[32];
+    }
+
+    /*异常行为识别事件类型*/
+    public static class VCA_RULE_EVENT_TYPE_EX {
+        public static final int ENUM_VCA_EVENT_TRAVERSE_PLANE = 1;//1-穿越警戒面（越界侦测）
+        public static final int ENUM_VCA_EVENT_ENTER_AREA = 2;//2-目标进入区域，支持区域规则
+        public static final int ENUM_VCA_EVENT_EXIT_AREA = 3;
+        public static final int ENUM_VCA_EVENT_INTRUSION = 4;
+        public static final int ENUM_VCA_EVENT_LOITER = 5;
+        public static final int ENUM_VCA_EVENT_LEFT_TAKE = 6;
+        public static final int ENUM_VCA_EVENT_PARKING = 7;
+        public static final int ENUM_VCA_EVENT_RUN = 8;
+        public static final int ENUM_VCA_EVENT_HIGH_DENSITY = 9;
+        public static final int ENUM_VCA_EVENT_VIOLENT_MOTION = 10;
+        public static final int ENUM_VCA_EVENT_REACH_HIGHT = 11;
+        public static final int ENUM_VCA_EVENT_GET_UP = 12;
+        public static final int ENUM_VCA_EVENT_LEFT = 13;
+        public static final int ENUM_VCA_EVENT_TAKE = 14;
+        public static final int ENUM_VCA_EVENT_LEAVE_POSITION = 15;
+        public static final int ENUM_VCA_EVENT_TRAIL = 16;
+        public static final int ENUM_VCA_EVENT_KEY_PERSON_GET_UP = 17;
+        public static final int ENUM_VCA_EVENT_STANDUP = 18;
+        public static final int ENUM_VCA_EVENT_FALL_DOWN = 20;
+        public static final int ENUM_VCA_EVENT_AUDIO_ABNORMAL = 21;
+        public static final int ENUM_VCA_EVENT_ADV_REACH_HEIGHT = 22;
+        public static final int ENUM_VCA_EVENT_TOILET_TARRY = 23;
+        public static final int ENUM_VCA_EVENT_YARD_TARRY = 24;
+        public static final int ENUM_VCA_EVENT_ADV_TRAVERSE_PLANE = 25;
+        public static final int ENUM_VCA_EVENT_LECTURE = 26;
+        public static final int ENUM_VCA_EVENT_ANSWER = 27;
+        public static final int ENUM_VCA_EVENT_HUMAN_ENTER = 29;
+        public static final int ENUM_VCA_EVENT_OVER_TIME = 30;
+        public static final int ENUM_VCA_EVENT_STICK_UP = 31;
+        public static final int ENUM_VCA_EVENT_INSTALL_SCANNER = 32;
+        public static final int ENUM_VCA_EVENT_PEOPLENUM_CHANGE = 35;
+        public static final int ENUM_VCA_EVENT_SPACING_CHANGE = 36;
+        public static final int ENUM_VCA_EVENT_COMBINED_RULE = 37;
+        public static final int ENUM_VCA_EVENT_SIT_QUIETLY = 38;
+        public static final int ENUM_VCA_EVENT_HIGH_DENSITY_STATUS = 39;
+        public static final int ENUM_VCA_EVENT_RUNNING = 40;
+        public static final int ENUM_VCA_EVENT_RETENTION = 41;//滞留检测
+        public static final int ENUM_VCA_EVENT_BLACKBOARD_WRITE = 42;
+        public static final int ENUM_VCA_EVENT_PLAY_CELLPHONE = 44;
+        public static final int ENUM_VCA_EVENT_DURATION = 45;
     }
 
     public static class NET_DVR_PTZ_POSITION extends Structure {

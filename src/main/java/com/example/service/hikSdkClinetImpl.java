@@ -849,9 +849,9 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             // 布防类型(仅针对门禁主机、人证设备)：0 - 客户端布防(会断网续传)，1 - 实时布防(只上传实时数据)
             m_strAlarmInfo.byDeployType = 1;
             // 抓拍，这个类型要设置为 0 ，最重要的一点设置
-            m_strAlarmInfo.byFaceAlarmDetection =0;
+            m_strAlarmInfo.byFaceAlarmDetection = 0;
             // 报警图片数据类型 123位 都是1 url传输
-            m_strAlarmInfo.byAlarmTypeURL=7;
+            m_strAlarmInfo.byAlarmTypeURL = 0;
             m_strAlarmInfo.write();
             // 布防成功，返回布防成功的数据传输通道号
             lAlarmHandle = hCNetSDK.NET_DVR_SetupAlarmChan_V41(lUserID, m_strAlarmInfo);
@@ -867,6 +867,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         }
         return lAlarmHandle;
     }
+
     /**
      * 注销
      *

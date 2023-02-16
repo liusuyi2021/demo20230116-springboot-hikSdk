@@ -4465,8 +4465,6 @@ DVR实现巡航数据结构
         public byte[] byRes1 = new byte[3];
         public byte byAlarmTypeURL;//bit0-表示人脸抓拍报警上传（INTER_FACESNAP_RESULT）；0-表示二进制传输，1-表示URL传输（设备支持的情况下，设备支持能力根据具体报警能力集判断,同时设备需要支持URL的相关服务，当前是”云存储“）
         public byte byCustomCtrl;//Bit0- 表示支持副驾驶人脸子图上传: 0-不上传,1-上传,(注：只在公司内部8600/8200等平台开放)
-
-
     }
 
     public static class NET_DVR_SETUPALARM_PARAM_V50 extends Structure {
@@ -4566,6 +4564,9 @@ DVR实现巡航数据结构
         public int[] uLen = new int[23];
         public NET_VCA_TRAVERSE_PLANE struTraversePlane;
         public NET_VCA_AREA struArea;
+        public NET_VCA_INTRUSION struIntrusion;
+        public NET_VCA_LEAVE_POSITION struLeavePos;
+        public NET_VCA_RETENTION  struRetention;
     }
 
     //穿越警戒面参数
@@ -4609,6 +4610,23 @@ DVR实现巡航数据结构
         public int[] byRelRecordChan = new int[MAX_CHANNUM_V30];//触发录像的通道号
         public NET_DVR_SCHEDTIME[] struHolidayTime = new NET_DVR_SCHEDTIME[MAX_TIMESEGMENT_V30]; //假日布防时间
         public byte[] byRes2 = new byte[100];
+    }
+
+    public static class NET_VCA_LEAVE_POSITION extends Structure {
+        public NET_VCA_POLYGON struRegion; //区域范围
+        public short wLeaveDelay; //无人报警时间，单位：秒，取值范围：1~1800
+        public short wStaticDelay;//睡觉报警时间，单位：秒，取值范围：1~1800
+        public byte byMode; //模式：0- 离岗事件，1- 睡岗事件，2- 离岗睡岗事件
+        public byte byPersonType;//值岗人数类型：0-单人值岗，1-双人值岗
+        public byte byOnPosition;//在岗人数，取值范围：1-10，默认1
+        public byte bySensitivity;//灵敏度参数，取值范围：1~5
+
+    }
+
+    public static class NET_VCA_RETENTION extends Structure {
+        public NET_VCA_POLYGON struRegion; //区域范围
+        public short wDuration;
+        public byte byRes;
     }
 
     public static class NET_VCA_INTRUSION extends Structure {
@@ -4711,6 +4729,7 @@ DVR实现巡航数据结构
     //进入/离开区域参数
     public static class NET_VCA_AREA extends Structure {
         public NET_VCA_POLYGON struRegion;
+        public byte byDetectionTarget;
         public byte[] byRes = new byte[8];
     }
 

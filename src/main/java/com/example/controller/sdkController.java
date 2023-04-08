@@ -84,7 +84,7 @@ public class sdkController {
         return CommonResult.success("controlZoomIn");
     }
 
-    @RequestMapping("/ZoomOut")
+    @RequestMapping("/controlZoomOut")
     private @ResponseBody
     CommonResult<String> controlZoomOut(Integer channelNum, Integer speed,boolean enable) {
         sdk.controlZoomOut(UserId, channelNum, speed, enable);
@@ -300,5 +300,30 @@ public class sdkController {
     CommonResult<String> recordStop(Integer channelNum) {
         String path = sdk.record(UserId, channelNum, false);
         return CommonResult.success("录像结束" + path);
+    }
+    @RequestMapping("/voiceStart")
+    private @ResponseBody
+    CommonResult<String> voiceStart(Integer channelNum) {
+        boolean res = sdk.startVoiceCom(UserId,channelNum);
+        return CommonResult.success("语音对讲开始" + res);
+    }
+    @RequestMapping("/voiceStop")
+    private @ResponseBody
+    CommonResult<String> voiceStop() {
+        boolean res = sdk.stopVoiceCom();
+        return CommonResult.success("语音对讲结束" + res);
+    }
+    @RequestMapping("/getZeroPTZ")
+    private @ResponseBody
+    CommonResult<Boolean> GetZeroPTZ(Integer channelNum) {
+        boolean zeroPtz = sdk.getZeroPtz(UserId, channelNum);
+        return CommonResult.success(zeroPtz);
+    }
+
+    @RequestMapping("/setZeroPTZ")
+    private @ResponseBody
+    CommonResult<Boolean> SetZeroPTZ(Integer channelNum) {
+        boolean zeroPtz = sdk.setZeroPtz(UserId, channelNum);
+        return CommonResult.success(zeroPtz);
     }
 }

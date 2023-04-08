@@ -6,7 +6,6 @@ import com.sun.jna.examples.win32.W32API.HWND;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
-import lombok.Getter;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -530,9 +529,9 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_GET_DDNSCFG_EX = 274;//获取扩展DDNS参数
     public static final int NET_DVR_SET_DDNSCFG_EX = 275;//设置扩展DDNS参数
     public static final int NET_DVR_SET_PTZPOS = 292;    //云台设置PTZ位置
-    public static final int NET_DVR_GET_PTZPOS = 293;    //云台获取PTZ位置
+    public static final int NET_DVR_GET_PTZPOS = 293;        //云台获取PTZ位置
     public static final int NET_DVR_GET_PTZSCOPE = 294;//云台获取PTZ范围
-    public static final int NET_DVR_SET_BASICPARAMCFG = 3271;//设置PTZ基本参数信息
+    public static final int NET_DVR_PTZ_INITIALPOSITIONCTRL = 3283;//零方位角控制
     public static final int NET_DVR_COMPLETE_RESTORE_CTRL = 3420;    //设置完全恢复出厂值
     /***************************
      * DS9000新增命令(_V30) begin
@@ -686,8 +685,7 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_SET_CCDPARAMCFG_EX = 3369;//设置前端参数(扩展)
     public static final int NET_DVR_GET_FOCUSMODECFG = 3305;//获取快球聚焦模式信息
     public static final int NET_DVR_SET_FOCUSMODECFG = 3306;//设置快球聚焦模式信息
-    public static final int NET_DVR_GET_DEVSERVER_CFG = 3257;//获取模块服务配置
-    public static final int NET_DVR_SET_DEVSERVER_CFG = 3258;//设置模块服务配置
+
     public static final int NET_DVR_GET_SUPPLEMENTLIGHT = 3728;  //获取内置补光灯配置协议
     public static final int NET_DVR_SET_SUPPLEMENTLIGHT = 3729;  //设置内置补光灯配置协议
 
@@ -707,6 +705,8 @@ public interface HCNetSDK extends Library {
     public static final int NET_DVR_GET_THERMOMETRY_PRESETINFO = 3624;  //获取测温预置点关联配置参数
     public static final int NET_DVR_SET_THERMOMETRY_PRESETINFO = 3625;  //设置测温预置点关联配置参数
     public static final int NET_DVR_GET_THERMOMETRYRULE_TEMPERATURE_INFO = 23001;//手动获取测温规则温度信息
+    public static final int NET_DVR_GET_DEVSERVER_CFG = 3257;//获取模块服务配置
+    public static final int NET_DVR_SET_DEVSERVER_CFG = 3258;//设置模块服务配置
 
     public static final int NET_DVR_GET_PHY_DISK_INFO = 6306;   //获取物理磁盘信息
     public static final int NET_DVR_GET_WORK_STATUS = 6189;   //获取设备工作状态
@@ -723,7 +723,7 @@ public interface HCNetSDK extends Library {
 
     public static final int NET_DVR_GET_CMS_CFG = 2070;
     public static final int NET_DVR_SET_CMS_CFG = 2071;
-    public static final int NET_DVR_SET_INFRARECFG = 3308;//设置快球红外参数
+
     public static final int NET_DVR_GET_ALARM_INFO = 4193;  //获取报警事件数据
     /***************************DS9000新增命令(_V30) end *****************************/
 
@@ -1125,6 +1125,8 @@ public interface HCNetSDK extends Library {
     public static final int VCA_CHAN_ABILITY = 0x110;//行为分析能力
     public static final int DEVICE_ABILITY_INFO = 0x011; //设备通用能力类型，具体能力根据发送的能力节点来区分
     public static final int NET_DVR_CHECK_USER_STATUS = 20005; //检测设备是否在线
+    //短时录像
+    boolean NET_DVR_SaveRealData_V30(Integer lRealHandle, int i, String recordPath);
     /**********************设备类型 end***********************/
 
     /*************************************************
@@ -1934,9 +1936,12 @@ public interface HCNetSDK extends Library {
         public byte byRes3;
         public short wDevInfoIvmsChannelEx;     //与NET_VCA_DEV_INFO里的byIvmsChannel含义相同，能表示更大的值。老客户端用byIvmsChannel能继续兼容，但是最大到255。新客户端版本请使用wDevInfoIvmsChannelEx
         public int dwPassingNum;        // 经过人数（进入区域后徘徊没有触发进入、离开的人数）
-
-
-        public byte[] byRes2 = new byte[32];
+        public int dwChildLeaveNum;        // 小孩离开人数
+        public int dwChildEnterNum;        // 小孩进入人数
+        public int dwDuplicatePeople;        // 重复人数
+        public int dwXmlLen;//XML透传数据长度, 即EventNotificationAlert XML Block的数据长度
+        public Pointer pXmlBuf; // XML报警信息指针,其XML对应到EventNotificationAlert XML Block
+        public byte[] byRes2 = new byte[8];
 
         public void read() {
             super.read();
@@ -2250,7 +2255,8 @@ public interface HCNetSDK extends Library {
     public static class NET_DVR_IPCHANINFO extends Structure {/* IP通道匹配参数 */
         public byte byEnable;                    /* 该通道是否启用 */
         public byte byIPID;                    /* IP设备ID 取值1- MAX_IP_DEVICE */
-        public byte byChannel;                    /* 通道号 */
+        public byte byChannel;                  /* 通道号 */
+        public byte byIPIDHigh;                 /* IP设备ID的高8位，byIPIDHigh = iDevID /256*/
         public byte[] byres = new byte[33];                    /* 保留 */
 
 
@@ -3771,6 +3777,13 @@ DVR实现巡航数据结构
         public NET_DVR_COMPRESSION_INFO_EX struEventCompression;    //事件触发录像
     }
 
+    //零方位角控制信息
+    public static class NET_DVR_INITIALPOSITIONCTRL extends Structure {
+        public int dwSize ;//结构体大小
+        public short dwChan;//设备通道号
+        public byte byWorkMode;//工作模式：0- 设置，1- 调用，2- 清除
+        public byte[] byRes = new byte[127];
+    }
     //球机位置信息
     public static class NET_DVR_PTZPOS extends Structure {
         public short wAction;//获取时该字段无效
@@ -3778,21 +3791,6 @@ DVR实现巡航数据结构
         public short wTiltPos;//垂直参数
         public short wZoomPos;//变倍参数
     }
-
-    //球机位置信息
-    public static class NET_DVR_PTZ_BASICPARAMCFG extends Structure {
-        public short dwSize;//结构体大小
-        public short byProportionalPan;//启用比例变倍配置：0- 否，1- 是
-        public short byPresetFreezing;//启用预置点视频冻结：0- 否，1- 是
-        public short byPresetSpeed;//预置点速度等级，取值范围：1~8，默认：4
-        public short byKeyboardCtrlSpeed;//手控速度等级：0- 低，1- 中，2- 高
-        public short byAutoScanSpeed;//扫描速度等级，取值范围：1~40，默认：28
-        public short byZoomingSpeed;//变倍速度，取值范围：1~3，默认：3
-        public short byManualControlSpeed;//手控速度模式：0- 兼容，1- 行人，2- 非机动车，3- 机动车，4- 自适应
-        public short byPTZMotionTrack;//启用运动跟踪（锁定云台操作）：0- 默认（开启），1- 关闭
-        public short byRes;//变倍参数
-    }
-
     //球机范围信息
     public static class NET_DVR_PTZSCOPE extends Structure {
         public short wPanPosMin;//水平参数min
@@ -4465,6 +4463,8 @@ DVR实现巡航数据结构
         public byte[] byRes1 = new byte[3];
         public byte byAlarmTypeURL;//bit0-表示人脸抓拍报警上传（INTER_FACESNAP_RESULT）；0-表示二进制传输，1-表示URL传输（设备支持的情况下，设备支持能力根据具体报警能力集判断,同时设备需要支持URL的相关服务，当前是”云存储“）
         public byte byCustomCtrl;//Bit0- 表示支持副驾驶人脸子图上传: 0-不上传,1-上传,(注：只在公司内部8600/8200等平台开放)
+
+
     }
 
     public static class NET_DVR_SETUPALARM_PARAM_V50 extends Structure {
@@ -4543,8 +4543,16 @@ DVR实现巡航数据结构
                     uEventParam.setType(NET_VCA_TRAVERSE_PLANE.class);
                     break;
                 case 2:
+                    uEventParam.setType(NET_VCA_AREA.class);
+                    break;
                 case 3:
                     uEventParam.setType(NET_VCA_AREA.class);
+                    break;
+                case 4:
+                    uEventParam.setType(NET_VCA_INTRUSION.class);
+                    break;
+                case 15:
+                    uEventParam.setType(NET_VCA_LEAVE_POSITION.class);
                     break;
                 default:
                     break;
@@ -4562,11 +4570,11 @@ DVR实现巡航数据结构
     //警戒规则参数联合体
     public static class NET_VCA_EVENT_UNION extends Union {
         public int[] uLen = new int[23];
-        public NET_VCA_TRAVERSE_PLANE struTraversePlane;
-        public NET_VCA_AREA struArea;
-        public NET_VCA_INTRUSION struIntrusion;
-        public NET_VCA_LEAVE_POSITION struLeavePos;
-        public NET_VCA_RETENTION  struRetention;
+        public NET_VCA_TRAVERSE_PLANE struTraversePlane;  //警戒参数
+        public NET_VCA_AREA struArea; //进入/离开区域参数
+        public NET_VCA_INTRUSION struIntrusion; //区域入侵参数
+        public NET_VCA_LEAVE_POSITION struLeavePos;        //离岗参数
+        public NET_VCA_RETENTION struRetention;//滞留参数
     }
 
     //穿越警戒面参数
@@ -4577,6 +4585,44 @@ DVR实现巡航数据结构
         public byte byPlaneHeight;
         public byte byDetectionTarget;/*检测目标：0- 所有目标，1- 人，2- 车   */
         public byte[] byRes2 = new byte[37];
+    }
+
+
+    //根据报警延迟时间来标识报警中带图片，报警间隔和IO报警一致，1秒发送一个。
+//入侵参数
+    public static class NET_VCA_INTRUSION extends Structure {
+        public NET_VCA_POLYGON struRegion;//区域范围
+        public short wDuration;            //行为事件触发时间阈值: 1-120秒，建议5秒，判断是有效报警的时间  在ATM系统中触发文件阈值为 1-1000秒
+        public byte bySensitivity;        //灵敏度参数，范围[1-100]
+        public byte byRate;               //占比：区域内所有未报警目标尺寸目标占区域面积的比重，归一化为－；
+        /*
+        检测目标，可支持多选，具体定义为：
+        0~所有目标（表示不锁定检测目标，所有目标都将进行检测）
+        0x01 ~ 人，
+        0x02 ~ 车，
+        0x04 ~ 其他，
+        该字段支持多选，按位取值，例如3表示1+2.
+        */
+        public byte byDetectionTarget;
+        public byte byPriority;//优先级,0~低,1~中,2~高
+        public byte byAlarmConfidence;    //报警置信度, 0-低,1-较低,2-较高,3-高
+        public byte byRecordConfidence;   //录像置信度, 0-低,1-较低,2-较高,3-高
+    }
+
+    public static class NET_VCA_LEAVE_POSITION extends Structure {
+        public NET_VCA_POLYGON struRegion; //区域范围
+        public short wLeaveDelay;  //无人报警时间，单位：s
+        public short wStaticDelay; //睡觉报警时间，单位：s
+        public byte byMode;       //模式，0-离岗事件，1-睡岗事件，2-离岗睡岗事件，3-在岗（当离岗人员回到岗位）
+        public byte byPersonType; //值岗人数类型，0-单人值岗，1-双人值岗
+        public byte byOnPosition; //在岗人数，1-10，默认1
+        public byte bySensitivity;     //灵敏度参数，范围[1,5]
+    }
+
+    public static class NET_VCA_RETENTION extends Structure {
+        public NET_VCA_POLYGON struRegion; //区域范围
+        public short wDuration;//触发滞留报警阈值时间，取值范围: 60~3600，单位：秒，默认为1800秒
+        public byte[] byRes = new byte[6];
     }
 
     public static class NET_DVR_HANDLEEXCEPTION_V40 extends Structure {
@@ -4610,40 +4656,6 @@ DVR实现巡航数据结构
         public int[] byRelRecordChan = new int[MAX_CHANNUM_V30];//触发录像的通道号
         public NET_DVR_SCHEDTIME[] struHolidayTime = new NET_DVR_SCHEDTIME[MAX_TIMESEGMENT_V30]; //假日布防时间
         public byte[] byRes2 = new byte[100];
-    }
-
-    public static class NET_VCA_LEAVE_POSITION extends Structure {
-        public NET_VCA_POLYGON struRegion; //区域范围
-        public short wLeaveDelay; //无人报警时间，单位：秒，取值范围：1~1800
-        public short wStaticDelay;//睡觉报警时间，单位：秒，取值范围：1~1800
-        public byte byMode; //模式：0- 离岗事件，1- 睡岗事件，2- 离岗睡岗事件
-        public byte byPersonType;//值岗人数类型：0-单人值岗，1-双人值岗
-        public byte byOnPosition;//在岗人数，取值范围：1-10，默认1
-        public byte bySensitivity;//灵敏度参数，取值范围：1~5
-
-    }
-
-    public static class NET_VCA_RETENTION extends Structure {
-        public NET_VCA_POLYGON struRegion; //区域范围
-        public short wDuration;
-        public byte byRes;
-    }
-
-    public static class NET_VCA_INTRUSION extends Structure {
-        public NET_VCA_POLYGON struRegion;//区域范围
-        public short wDuration;            //行为事件触发时间阈值: 1-120秒，建议5秒，判断是有效报警的时间  在ATM系统中触发文件阈值为 1-1000秒
-        public byte bySensitivity;        //灵敏度参数，范围[1-100]
-        public byte byRate;               //占比：区域内所有未报警目标尺寸目标占区域面积的比重，归一化为－；
-        /*
-    检测目标，可支持多选，具体定义为：
-    0~所有目标（表示不锁定检测目标，所有目标都将进行检测）
-    0x01 ~ 人，
-    0x02 ~ 车，
-    0x04 ~ 其他
-    */
-        public byte byDetectionTarget;
-        public byte byPriority;//优先级,0~低,1~中,2~高
-        public byte[] byRes = new byte[2];             //保留
     }
 
 
@@ -4729,8 +4741,18 @@ DVR实现巡航数据结构
     //进入/离开区域参数
     public static class NET_VCA_AREA extends Structure {
         public NET_VCA_POLYGON struRegion;
+        public byte bySensitivity;        //灵敏度参数，范围[1,5]
+        /*
+        检测目标，可支持多选，具体定义为：
+        0~所有目标（表示不锁定检测目标，所有目标都将进行检测）
+        0x01 ~ 人，
+        0x02 ~ 车，
+        0x04 ~ 其他，
+        该字段支持多选，按位取值，例如3表示1+2.
+        */
         public byte byDetectionTarget;
-        public byte[] byRes = new byte[8];
+        public byte byPriority;//优先级,0~低,1~中,2~高
+        public byte[] byRes = new byte[5];
     }
 
     //多边形结构体
@@ -4886,50 +4908,6 @@ DVR实现巡航数据结构
         public NET_VCA_FILTER_STRATEGY struFilterStrategy;  //尺寸过滤策略
         public NET_VCA_RULE_TRIGGER_PARAM struTriggerParam; //规则触发参数
         public byte[] byRes = new byte[32];
-    }
-
-    /*异常行为识别事件类型*/
-    public static class VCA_RULE_EVENT_TYPE_EX {
-        public static final int ENUM_VCA_EVENT_TRAVERSE_PLANE = 1;//1-穿越警戒面（越界侦测）
-        public static final int ENUM_VCA_EVENT_ENTER_AREA = 2;//2-目标进入区域，支持区域规则
-        public static final int ENUM_VCA_EVENT_EXIT_AREA = 3;
-        public static final int ENUM_VCA_EVENT_INTRUSION = 4;
-        public static final int ENUM_VCA_EVENT_LOITER = 5;
-        public static final int ENUM_VCA_EVENT_LEFT_TAKE = 6;
-        public static final int ENUM_VCA_EVENT_PARKING = 7;
-        public static final int ENUM_VCA_EVENT_RUN = 8;
-        public static final int ENUM_VCA_EVENT_HIGH_DENSITY = 9;
-        public static final int ENUM_VCA_EVENT_VIOLENT_MOTION = 10;
-        public static final int ENUM_VCA_EVENT_REACH_HIGHT = 11;
-        public static final int ENUM_VCA_EVENT_GET_UP = 12;
-        public static final int ENUM_VCA_EVENT_LEFT = 13;
-        public static final int ENUM_VCA_EVENT_TAKE = 14;
-        public static final int ENUM_VCA_EVENT_LEAVE_POSITION = 15;
-        public static final int ENUM_VCA_EVENT_TRAIL = 16;
-        public static final int ENUM_VCA_EVENT_KEY_PERSON_GET_UP = 17;
-        public static final int ENUM_VCA_EVENT_STANDUP = 18;
-        public static final int ENUM_VCA_EVENT_FALL_DOWN = 20;
-        public static final int ENUM_VCA_EVENT_AUDIO_ABNORMAL = 21;
-        public static final int ENUM_VCA_EVENT_ADV_REACH_HEIGHT = 22;
-        public static final int ENUM_VCA_EVENT_TOILET_TARRY = 23;
-        public static final int ENUM_VCA_EVENT_YARD_TARRY = 24;
-        public static final int ENUM_VCA_EVENT_ADV_TRAVERSE_PLANE = 25;
-        public static final int ENUM_VCA_EVENT_LECTURE = 26;
-        public static final int ENUM_VCA_EVENT_ANSWER = 27;
-        public static final int ENUM_VCA_EVENT_HUMAN_ENTER = 29;
-        public static final int ENUM_VCA_EVENT_OVER_TIME = 30;
-        public static final int ENUM_VCA_EVENT_STICK_UP = 31;
-        public static final int ENUM_VCA_EVENT_INSTALL_SCANNER = 32;
-        public static final int ENUM_VCA_EVENT_PEOPLENUM_CHANGE = 35;
-        public static final int ENUM_VCA_EVENT_SPACING_CHANGE = 36;
-        public static final int ENUM_VCA_EVENT_COMBINED_RULE = 37;
-        public static final int ENUM_VCA_EVENT_SIT_QUIETLY = 38;
-        public static final int ENUM_VCA_EVENT_HIGH_DENSITY_STATUS = 39;
-        public static final int ENUM_VCA_EVENT_RUNNING = 40;
-        public static final int ENUM_VCA_EVENT_RETENTION = 41;//滞留检测
-        public static final int ENUM_VCA_EVENT_BLACKBOARD_WRITE = 42;
-        public static final int ENUM_VCA_EVENT_PLAY_CELLPHONE = 44;
-        public static final int ENUM_VCA_EVENT_DURATION = 45;
     }
 
     public static class NET_DVR_PTZ_POSITION extends Structure {
@@ -6302,6 +6280,33 @@ DVR实现巡航数据结构
     public static class NET_DVR_SEND_CARD_INFO extends Structure {
         public byte[] byCardNo = new byte[ACS_CARD_NO_LEN/*32*/]; //卡号
         public byte[] byRes = new byte[224];  //保留
+    }
+
+    //防区报警信息结构体
+    public static class NET_DVR_ZONE_ALARM_INFO extends Structure {
+        public byte[] byZoneName = new byte[NAME_LEN]; //防区名称
+        public int dwZonendex;//防区号
+        public byte byZoneType;//防区类型 ENUM_ALARM_ZONE_TYPE_MANUAL-紧急开关报警;ENUM_ALARM_ZONE_TYPE_MAGNETIC-门磁报警;ENUM_ALARM_ZONE_TYPE_SMOKE-烟感报警;ENUM_ALARM_ZONE_TYPE_ACTIVE_INFRARED-主动红外报警;ENUM_ALARM_ZONE_TYPE_PASSIVE_INFRARED-被动红外报警;ENUM_ALARM_ZONE_TYPE_GAS-煤气报警
+        public byte[] byRes = new byte[219]; //保留,置为0
+    }
+
+    //可视对讲报警信息联合体
+    public static class NET_DVR_VIDEO_INTERCOM_ALARM_INFO_UNION extends Union {
+        public byte[] byLen = new byte[256]; //联合体大小
+        public NET_DVR_ZONE_ALARM_INFO struZoneAlarm = new NET_DVR_ZONE_ALARM_INFO(); //开锁记录
+    }
+
+    //可视对讲报警信息结构体
+    public static class NET_DVR_VIDEO_INTERCOM_ALARM extends Structure {
+        public int dwSize; //结构体大小
+        public NET_DVR_TIME_EX struTime = new NET_DVR_TIME_EX(); //时间
+        public byte[] byDevNumber = new byte[MAX_DEV_NUMBER_LEN]; //设备编号
+        public byte byAlarmType;//报警类型：1- 防区报警，2- 防拆报警，3- 劫持报警，4- 多次密码开锁失败报警，5- 门没开，6- 门没关，7- SOS(呼救报警)，8- 通话对讲，9- 智能锁劫持指纹报警，
+        // 10- 智能锁劫持密码报警，11- 智能锁撬门报警，12- 智能锁门锁锁定报警，13- 智能锁电量不足报警, 14-禁止名单报警, 15-智能锁掉线, 16-门禁安全模块防拆报警
+        public byte[] byRes1 = new byte[3]; //保留
+        public NET_DVR_VIDEO_INTERCOM_ALARM_INFO_UNION uAlarmInfo = new NET_DVR_VIDEO_INTERCOM_ALARM_INFO_UNION(); //报警信息，byAlarmType为1时有效
+        public short wLockID;    //锁ID，（0-表示门口机本机控制器上接的锁、1-表示外接控制器上接的锁）（报警类型为5和6时有效）
+        public byte[] byRes2 = new byte[254]; //保留，置为0
     }
 
     //可视对讲事件记录信息联合体
@@ -8210,9 +8215,9 @@ DVR实现巡航数据结构
         public byte byRuleCalibType;//规则标定类型 0-点，1-框，2线
         public NET_VCA_POINT[] struPoint = (NET_VCA_POINT[]) new NET_VCA_POINT().toArray(2);//点测温坐标（当规则标定类型为点的时候生效）数组下标0代表着AlarmID1，数组下标1代表着AlarmID2.
         public NET_VCA_POLYGON[] struRegion = (NET_VCA_POLYGON[]) new NET_VCA_POLYGON().toArray(2);//区域（当规则标定类型为框的时候生效）数组下标0代表着AlarmID1，数组下标1代表着AlarmID2.
-        float fRuleTemperatureDiff;/*配置规则温差,精确到小数点后一位(-40-1000)）*/
-        float fCurTemperatureDiff;/*当前温差,精确到小数点后一位(-40-1000),（浮点数+100） */
-        NET_PTZ_INFO struPtzInfo;//ptz坐标信息
+        public float fRuleTemperatureDiff;/*配置规则温差,精确到小数点后一位(-40-1000)）*/
+        public float fCurTemperatureDiff;/*当前温差,精确到小数点后一位(-40-1000),（浮点数+100） */
+        public NET_PTZ_INFO struPtzInfo;//ptz坐标信息
         public int dwPicLen;//可见光图片长度
         public int dwThermalPicLen;//热成像图片长度
         public int dwThermalInfoLen;//热成像附加信息长度
@@ -8222,7 +8227,7 @@ DVR实现巡航数据结构
         public byte byThermometryUnit;//测温单位: 0-摄氏度（℃），1-华氏度（℉），2-开尔文(K)
         public byte byPicTransType;        //图片数据传输方式: 0-二进制；1-url
         public byte[] byRes1 = new byte[2];
-        float fToleranceTemperature;/*容差温度,精确到小数点后一位(-40-1000),（浮点数+100） */
+        public float fToleranceTemperature;/*容差温度,精确到小数点后一位(-40-1000),（浮点数+100） */
         public int dwAlarmFilteringTime;//温度报警等待时间 单位秒 范围为0-200秒，默认为0秒
         public int dwVisibleChannel; //可见光通道通道号
         public byte[] byRes = new byte[48];
@@ -9040,14 +9045,6 @@ DVR实现巡航数据结构
         public byte[] byDevIP = new byte[16];
     }
 
-    public static class NET_DVR_INFRARE_CFG extends Structure {
-        public int dwSize;
-        public byte byIrControlMode;
-        public byte byIrBrightness;
-        public byte byIrSensitivity;
-        public byte[] byRes = new byte[65];
-
-    }
 
     public static class NET_DVR_CAMERAPARAMCFG_EX extends Structure {
         public int dwSize;
@@ -9707,7 +9704,7 @@ DVR实现巡航数据结构
 
     boolean NET_DVR_StopListen();
 
-    int NET_DVR_StartListen_V30(String sLocalIP, short wLocalPort, FMSGCallBack_V31 DataCallBack, Pointer pUserData);
+    int NET_DVR_StartListen_V30(String sLocalIP, short wLocalPort, FMSGCallBack DataCallBack, Pointer pUserData);
 
     boolean NET_DVR_StopListen_V30(int lListenHandle);
 
@@ -9910,10 +9907,6 @@ DVR实现巡航数据结构
     boolean NET_DVR_DelDVR(int lUserID);
 
     boolean NET_DVR_DelDVR_V30(int lVoiceHandle);
-
-    //短时录像
-    boolean NET_DVR_SaveRealData_V30(int lRealHandle, int STREAM_TYPE, String sFileName);
-
 
     ////////////////////////////////////////////////////////////
 //透明通道设置
@@ -10696,9 +10689,5 @@ interface USER32 extends W32API {
     boolean DrawEdge(HDC hdc, com.sun.jna.examples.win32.GDI32.RECT qrc, int edge, int grfFlags);
 
     int FillRect(HDC hDC, com.sun.jna.examples.win32.GDI32.RECT lprc, HANDLE hbr);
-
 }
-
-
-
 

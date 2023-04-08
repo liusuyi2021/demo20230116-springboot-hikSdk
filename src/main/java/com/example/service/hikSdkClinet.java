@@ -2,9 +2,8 @@ package com.example.service;
 
 import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
-
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
 
 /**
  * @ClassName: sdkClinet
@@ -73,5 +72,20 @@ public interface hikSdkClinet {
 
     //手动录像
     String record(Integer userId, Integer channelNum, Boolean enable);
+
+    //设置零方位角
+    boolean setZeroPtz(Integer userId, Integer channelNum);
+    //获取零方位角
+    public boolean getZeroPtz(Integer userId, Integer channelNum);
+    /**
+     * 开启语音对讲
+     *
+     * @param userID
+     */
+    boolean startVoiceCom1(Integer userID,Integer channelNum) ;
+    boolean stopVoiceCom1() ;
+    boolean startVoiceCom(Integer userID,Integer channelNum) ;
+    boolean stopVoiceCom() ;
+    public String getChannel(Integer userId,Integer channelNum);
 
 }

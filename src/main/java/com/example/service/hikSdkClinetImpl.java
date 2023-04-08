@@ -5,6 +5,7 @@ import com.example.domian.PTZ;
 import com.example.domian.recordInfo;
 import com.example.util.WaterMarkUtil;
 import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
@@ -39,7 +40,9 @@ public class hikSdkClinetImpl implements hikSdkClinet {
 
     private static HCNetSDK hCNetSDK;
     // 报警回调函数实现
-    public static HCNetSDK.FMSGCallBack_V31 fMSFCallBack_V31;
+    public static FMSGCallBack_V31 fMSFCallBack_V31;
+    static int lVoiceComHandle = -1; //语音对讲句柄
+
     private static Map<Integer, recordInfo> user_real_Map = new HashMap<>();
 
     /**
@@ -51,7 +54,6 @@ public class hikSdkClinetImpl implements hikSdkClinet {
      * @修改人和其它信息
      */
     @Override
-
     public void initHCNetSDK() {
         try {
             String WIN_PATH = System.getProperty("user.dir") + File.separator + "lib" + File.separator + "HCNetSDK.dll";
@@ -103,12 +105,24 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         //是否异步登录：0- 否，1- 是  windowsSDK里是true和false
         m_strLoginInfo.bUseAsynLogin = false;
         m_strLoginInfo.write();
+        //设置语音对讲回调函数
+//        if (voiceDatacallback == null) {
+//            voiceDatacallback = new VoiceDataCallBack();
+//        }
+//
+//        //设置语音回调函数
+//        if (cbVoiceDataCallBack == null) {
+//            cbVoiceDataCallBack = new cbVoiceDataCallBack_MR_V30();
+//        }
+
         int lUserID = hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
         if (lUserID < 0) {
             //释放SDK资源
             hCNetSDK.NET_DVR_Cleanup();
             log.error("登录失败");
         }
+        // getChannel(lUserID,1);
+        getIPChannelInfo(lUserID);
         // 设置报警回调函数，建立报警上传通道（启用布防）
         int lAlarmHandle = setupAlarmChan(lUserID, -1);
         return lUserID;
@@ -695,38 +709,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             InputStream input = new ByteArrayInputStream(array);
             String url = minio.uploadFile(BucketName, ObjectName, input, ContentType);
             return url;
-            //存储到本地
-//            String path = "D:/pic/" + new Date().getTime() + "(" + userId + ")" + ".jpeg";
-//            File file = new File(path);
-//            if (!file.exists()) {
-//                try {
-//                    File fileParent = file.getParentFile();
-//                    if (!fileParent.exists()) {
-//                        fileParent.mkdirs();
-//                    }
-//                    file.createNewFile();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            BufferedOutputStream outputStream = null;
-//            try {
-//                outputStream = new BufferedOutputStream(new FileOutputStream(file));
-//                outputStream.write(jpegBuffer.array(), 0, a.getValue());
-//                outputStream.flush();
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } finally {
-//                if (outputStream != null) {
-//                    try {
-//                        outputStream.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
+
         } else {
             log.info("hksdk(抓图)-抓取失败,错误码:" + hCNetSDK.NET_DVR_GetLastError());
             return "";
@@ -835,7 +818,7 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             if (fMSFCallBack_V31 == null) {
                 fMSFCallBack_V31 = new FMSGCallBack();
                 Pointer pUser = null;
-                if (!hCNetSDK.NET_DVR_SetDVRMessageCallBack_V31(fMSFCallBack_V31, pUser)) {
+                if (!hCNetSDK.NET_DVR_SetDVRMessageCallBack_V50(0, fMSFCallBack_V31, pUser)) {
                     log.info("设置回调函数失败!", hCNetSDK.NET_DVR_GetLastError());
                 }
             }
@@ -848,10 +831,6 @@ public class hikSdkClinetImpl implements hikSdkClinet {
             m_strAlarmInfo.byAlarmInfoType = 1;
             // 布防类型(仅针对门禁主机、人证设备)：0 - 客户端布防(会断网续传)，1 - 实时布防(只上传实时数据)
             m_strAlarmInfo.byDeployType = 1;
-            // 抓拍，这个类型要设置为 0 ，最重要的一点设置
-            m_strAlarmInfo.byFaceAlarmDetection = 0;
-            // 报警图片数据类型 123位 都是1 url传输
-            m_strAlarmInfo.byAlarmTypeURL = 0;
             m_strAlarmInfo.write();
             // 布防成功，返回布防成功的数据传输通道号
             lAlarmHandle = hCNetSDK.NET_DVR_SetupAlarmChan_V41(lUserID, m_strAlarmInfo);
@@ -878,5 +857,170 @@ public class hikSdkClinetImpl implements hikSdkClinet {
         hCNetSDK.NET_DVR_Logout(lUserID);
         // 释放sdk资源
         hCNetSDK.NET_DVR_Cleanup();
+    }
+
+
+    //设置零方位角
+    @Override
+    public boolean setZeroPtz(Integer userId, Integer channelNum) {
+        HCNetSDK.NET_DVR_INITIALPOSITIONCTRL initialpositionctrl = new HCNetSDK.NET_DVR_INITIALPOSITIONCTRL();
+
+        initialpositionctrl.dwSize=initialpositionctrl.size();
+        initialpositionctrl.byWorkMode = 0;
+        initialpositionctrl.dwChan = Short.parseShort(channelNum.toString());
+
+        Pointer point = initialpositionctrl.getPointer();
+        initialpositionctrl.write();
+        boolean bool = hCNetSDK.NET_DVR_RemoteControl(userId, NET_DVR_PTZ_INITIALPOSITIONCTRL, point, initialpositionctrl.size());
+        if (!bool) {
+            int i = hCNetSDK.NET_DVR_GetLastError();
+            log.error("错误码：" + i);
+        }
+        return bool;
+    }
+
+    //调用零方位角
+    @Override
+    public boolean getZeroPtz(Integer userId, Integer channelNum) {
+        HCNetSDK.NET_DVR_INITIALPOSITIONCTRL initialpositionctrl = new HCNetSDK.NET_DVR_INITIALPOSITIONCTRL();
+        initialpositionctrl.dwSize=initialpositionctrl.size();
+        initialpositionctrl.byWorkMode = 1;
+        initialpositionctrl.dwChan = Short.parseShort(channelNum.toString());;
+        Pointer point = initialpositionctrl.getPointer();
+        initialpositionctrl.write();
+        boolean bool = hCNetSDK.NET_DVR_RemoteControl(userId, NET_DVR_PTZ_INITIALPOSITIONCTRL, point, initialpositionctrl.size());
+        if (!bool) {
+            int i = hCNetSDK.NET_DVR_GetLastError();
+            log.error("错误码：" + i);
+        }
+        return bool;
+    }
+
+    @Override
+    public String getChannel(Integer userId, Integer channelNum) {
+        HCNetSDK.NET_DVR_IPPARACFG_V40 ipparacfg = new HCNetSDK.NET_DVR_IPPARACFG_V40();
+        Pointer pioint = ipparacfg.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean bool = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_IPPARACFG_V40, channelNum, pioint, ipparacfg.size(), ibrBytesReturned);
+        if (bool) {
+            ipparacfg.read();
+            int dwDChanNum = ipparacfg.dwDChanNum;
+            int dwStartDChan = ipparacfg.dwStartDChan;
+            for (int i = 0; i < ipparacfg.dwDChanNum; i++) {
+                int channelNum1 = i + ipparacfg.dwStartDChan;
+                HCNetSDK.NET_DVR_PICCFG_V40 piccfgEx = new HCNetSDK.NET_DVR_PICCFG_V40();
+                Pointer pioint1 = ipparacfg.getPointer();
+                IntByReference ibrBytesReturned1 = new IntByReference(0);
+                bool = hCNetSDK.NET_DVR_GetDVRConfig(userId, HCNetSDK.NET_DVR_GET_PICCFG_V40, channelNum1, pioint1, piccfgEx.size(), ibrBytesReturned1);
+                if (bool) {
+                    piccfgEx.read();
+                    byte[] sChanName = piccfgEx.sChanName;
+                    String strString = new String(sChanName);
+                    log.info("当前通道名称：" + strString);
+                } else {
+                    int code = hCNetSDK.NET_DVR_GetLastError();
+                    System.out.println("获取通道信息失败：" + code);
+                }
+            }
+        } else {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            System.out.println("获取通道信息失败：" + code);
+        }
+
+        return null;
+    }
+
+    //获取IP通道
+    public static void getIPChannelInfo(int iUserID) {
+        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
+        HCNetSDK.NET_DVR_IPPARACFG_V40 m_strIpparaCfg = new HCNetSDK.NET_DVR_IPPARACFG_V40();
+        m_strIpparaCfg.write();
+        //lpIpParaConfig 接收数据的缓冲指针
+        Pointer lpIpParaConfig = m_strIpparaCfg.getPointer();
+        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(iUserID, HCNetSDK.NET_DVR_GET_IPPARACFG_V40, 0, lpIpParaConfig, m_strIpparaCfg.size(), ibrBytesReturned);
+        m_strIpparaCfg.read();
+        log.info("起始数字通道号：" + m_strIpparaCfg.dwStartDChan);
+        for (int iChannum = 0; iChannum < m_strIpparaCfg.dwDChanNum; iChannum++) {
+            int channum = iChannum + m_strIpparaCfg.dwStartDChan;
+            HCNetSDK.NET_DVR_PICCFG_V40 strPicCfg = new HCNetSDK.NET_DVR_PICCFG_V40();
+            strPicCfg.dwSize = strPicCfg.size();
+            strPicCfg.write();
+            Pointer pStrPicCfg = strPicCfg.getPointer();
+            NativeLong lChannel = new NativeLong(channum);
+            IntByReference pInt = new IntByReference(0);
+            boolean b_GetPicCfg = hCNetSDK.NET_DVR_GetDVRConfig(iUserID, HCNetSDK.NET_DVR_GET_PICCFG_V40, lChannel.intValue(),
+                    pStrPicCfg, strPicCfg.size(), pInt);
+            if (b_GetPicCfg) {
+                strPicCfg.read();
+                m_strIpparaCfg.struStreamMode[iChannum].read();
+                if (m_strIpparaCfg.struStreamMode[iChannum].byGetStreamType == 0) {
+                    m_strIpparaCfg.struStreamMode[iChannum].uGetStream.setType(HCNetSDK.NET_DVR_IPCHANINFO.class);
+                    m_strIpparaCfg.struStreamMode[iChannum].uGetStream.struChanInfo.read();
+                    if (m_strIpparaCfg.struStreamMode[iChannum].uGetStream.struChanInfo.byEnable == 1) {
+                        log.info("IP通道" + channum + "在线");
+                        System.out.println("--------------第" + (iChannum + 1) + "个通道------------------");
+                        int channel = m_strIpparaCfg.struStreamMode[iChannum].uGetStream.struChanInfo.byIPID + m_strIpparaCfg.struStreamMode[iChannum].uGetStream.struChanInfo.byIPIDHigh * 256;
+                        if (channel > 0) {
+                            log.info("channel:" + channel);
+                            try {
+                                System.out.println("name： " + new String(strPicCfg.sChanName, "GBK").trim());
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else {
+                        log.info("IP通道" + channum + "离线");
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean startVoiceCom(Integer userID, Integer channelNum) {
+        int voiceChannel = channelNum; //语音通道号。对于设备本身的语音对讲通道，从1开始；对于设备的IP通道，为登录返回的
+        // 起始对讲通道号(byStartDTalkChan) + IP通道索引 - 1，例如客户端通过NVR跟其IP Channel02所接前端IPC进行对讲，则dwVoiceChan=byStartDTalkChan + 1
+        boolean bret = true;  //需要回调的语音数据类型：0- 编码后的语音数据，1- 编码前的PCM原始数据
+        lVoiceComHandle = hCNetSDK.NET_DVR_StartVoiceCom_V30(userID, voiceChannel, bret, null, null);
+        if (lVoiceComHandle <= -1) {
+            log.error("语音对讲开启失败，错误码为" + hCNetSDK.NET_DVR_GetLastError());
+            return false;
+        }
+        log.info("语音对讲开始成功！");
+        return true;
+    }
+
+
+    @Override
+    public boolean stopVoiceCom() {
+        if (!hCNetSDK.NET_DVR_StopVoiceCom(lVoiceComHandle)) {
+            log.error("停止对讲失败，错误码为" + hCNetSDK.NET_DVR_GetLastError());
+            return false;
+        }
+        log.info("语音对讲停止成功！");
+        return true;
+    }
+
+    /**
+     * 开启语音转发
+     * 设备音频编码格式G711u
+     *
+     * @return
+     */
+    @Override
+    public boolean startVoiceCom1(Integer userID, Integer channelNum) {
+        int voiceChannel = channelNum; //语音通道号。对于设备本身的语音对讲通道，从1开始；对于设备的IP通道，为登录返回的
+        // 起始对讲通道号(byStartDTalkChan) + IP通道索引 - 1，例如客户端通过NVR跟其IP Channel02所接前端IPC进行对讲，则dwVoiceChan=byStartDTalkChan + 1
+        int lVoiceHandle = hCNetSDK.NET_DVR_StartVoiceCom_MR_V30(userID, voiceChannel, null, null);
+        if (lVoiceHandle == -1) {
+            System.out.println("语音转发启动失败,err=" + hCNetSDK.NET_DVR_GetLastError());
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean stopVoiceCom1() {
+        return false;
     }
 }

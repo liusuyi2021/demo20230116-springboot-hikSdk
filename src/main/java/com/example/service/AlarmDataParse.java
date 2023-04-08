@@ -359,7 +359,7 @@ public class AlarmDataParse {
                 SimpleDateFormat sf0 = new SimpleDateFormat("yyyyMMddHHmmss");
                 String curTime0 = sf0.format(new Date());
                 FileOutputStream Data;
-                String jsonfile =  System.getProperty("user.dir") + File.separator +"pic"+File.separator + new String(pAlarmer.sDeviceIP).trim() + curTime0 + "_VCA_ALARM_" + ".json";
+                String jsonfile = System.getProperty("user.dir") + File.separator + "pic" + File.separator + new String(pAlarmer.sDeviceIP).trim() + curTime0 + "_VCA_ALARM_" + ".json";
                 try {
                     Data = new FileOutputStream(jsonfile);
                     //将字节写入文件
@@ -544,13 +544,15 @@ public class AlarmDataParse {
                         System.out.println("人员滞留事件触发");
                         strVcaAlarm.struRuleInfo.uEventParam.setType(HCNetSDK.NET_VCA_RETENTION.class);
                         System.out.println(strVcaAlarm.struRuleInfo.uEventParam.struRetention.wDuration);
+                        System.out.println("图片数量：" + strVcaAlarm.byRelAlarmPicNum);
+                        System.out.println("附加信息是否上传：" + strVcaAlarm.byAppendInfoUploadEnabled);
                         //图片保存
                         if ((strVcaAlarm.dwPicDataLen > 0) && (strVcaAlarm.byPicTransType == 0)) {
                             SimpleDateFormat sf = new SimpleDateFormat("yyyyMMddHHmmss");
                             String newName = sf.format(new Date());
                             FileOutputStream fout;
                             try {
-                                String filename = System.getProperty("user.dir") + File.separator + "pic" + File.separator + newName + "VCA_LEAVE_POSITION_" + ".jpg";
+                                String filename = System.getProperty("user.dir") + File.separator + "pic" + File.separator + newName + "VCA_RETENTION_" + ".jpg";
                                 fout = new FileOutputStream(filename);
                                 //将字节写入文件
                                 long offset = 0;
@@ -807,8 +809,8 @@ public class AlarmDataParse {
                     String time = df.format(new Date());// new Date()为获取当前系统时间
 
                     //人脸图片写文件
-                    FileOutputStream small = new FileOutputStream("../pic/" + time + "small.jpg");
-                    FileOutputStream big = new FileOutputStream("../pic/" + time + "big.jpg");
+                    FileOutputStream small = new FileOutputStream(System.getProperty("user.dir") + File.separator + "pic" + File.separator + time + "small.jpg");
+                    FileOutputStream big = new FileOutputStream(System.getProperty("user.dir") + File.separator + "pic" + File.separator + time + "big.jpg");
                     try {
                         small.write(strFaceSnapInfo.pBuffer1.getByteArray(0, strFaceSnapInfo.dwFacePicLen), 0, strFaceSnapInfo.dwFacePicLen);
                         small.close();
@@ -1014,7 +1016,7 @@ public class AlarmDataParse {
                 Pointer pAlarmInfo_V30 = struAlarmInfo.getPointer();
                 pAlarmInfo_V30.write(0, pAlarmInfo.getByteArray(0, struAlarmInfo.size()), 0, struAlarmInfo.size());
                 struAlarmInfo.read();
-                System.out.println("报警类型：" + struAlarmInfo.dwAlarmType);  // 3-移动侦测
+                System.out.println("报警类型：" + struAlarmInfo.dwAlarmType);  // /*0-信号量报警,1-硬盘满,2-信号丢失,3－移动侦测,4－硬盘未格式化,5-读写硬盘出错,6-遮挡报警,7-制式不匹配, 8-非法访问, 0xa-GPS定位信息(车载定制)*/
                 break;
             case HCNetSDK.COMM_ALARM_V40: //移动侦测、视频丢失、遮挡、IO信号量等报警信息，报警数据为可变长
                 HCNetSDK.NET_DVR_ALARMINFO_V40 struAlarmInfoV40 = new HCNetSDK.NET_DVR_ALARMINFO_V40();

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>测试页</title>
+    <!--    <script type="text/javascript" src="jquery-1.7.1.min.js"></script>-->
+    <link rel="stylesheet" th:href="@{/js/layui/css/layui.css}"/>
+    <script th:src="@{/js/layui/layui.js}"></script>
+    <style type="text/css">
+        #imgcontainer {
+            width: 500px;
+            height: 400px;
+            border: 5px solid #252831;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-container">
+    <div class="layui-col-md8">
+        <div class="layui-row">
+                <div class="layui-col-md1 layui-col-md-offset1">
+                    <button id="up" type="button" class="layui-btn">上</button>
+                </div>
+                <div class="layui-col-md4 layui-col-md-offset5">
+                    <div class="layui-btn-container">
+                        <button id="controlZoomIn" type="button" class="layui-btn">调焦-</button>
+                        <button id="controlZoomOut" type="button" class="layui-btn">调焦+</button>
+                    </div>
+                </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md1">
+                <button id="left" type="button" class="layui-btn">左</button>
+            </div>
+            <div class="layui-col-md1 layui-col-md-offset1">
+                <button id="right" type="button" class="layui-btn">右</button>
+            </div>
+            <div class="layui-col-md4 layui-col-md-offset4">
+                <div class="layui-btn-container">
+                    <button id="controlFocusNear" type="button" class="layui-btn">聚焦-</button>
+                    <button id="controlFocusFar" type="button" class="layui-btn">聚焦+</button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-btn-container">
+                <div class="layui-col-md1 layui-col-md-offset1">
+                    <button id="down" type="button" class="layui-btn">下</button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <form class="layui-form layui-form-pane" action="">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">P值：</label>
+                        <div class="layui-input-inline">
+                            <input id="p" type="text" name="title" lay-verify="title" autocomplete="off"
+                                   placeholder="请输入P值"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">T值：</label>
+                        <div class="layui-input-inline">
+                            <input id="t" type="text" name="title" lay-verify="title" autocomplete="off"
+                                   placeholder="请输入T值"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">Z值：</label>
+                        <div class="layui-input-inline">
+                            <input id="z" type="text" name="title" lay-verify="title" autocomplete="off"
+                                   placeholder="请输入Z值"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-row">
+            <div class="layui-btn-container">
+                <button id="setPreset" type="button" class="layui-btn">设预置点</button>
+                <button id="gotoPreset" type="button" class="layui-btn">调预置点</button>
+                <button id="getPTZ" type="button" class="layui-btn">获取ptz</button>
+                <button id="setPTZ" type="button" class="layui-btn">设置ptz</button>
+                <button id="getZeroPTZ" type="button" class="layui-btn">调用零方位角</button>
+                <button id="setZeroPTZ" type="button" class="layui-btn">设置零方位角</button>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-btn-container">
+                <button id="WiperPwron" type="button" class="layui-btn">开启雨刷</button>
+                <button id="Defogcfg" type="button" class="layui-btn">开启透雾</button>
+                <button id="Infrarecfg" type="button" class="layui-btn">开启红外</button>
+                <button id="FocusMode" type="button" class="layui-btn">手动聚焦</button>
+                <button id="HeateRpwron" type="button" class="layui-btn">开启云台加热</button>
+                <button id="CameraDeicing" type="button" class="layui-btn">开启镜头加热</button>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-btn-container">
+                <button id="voice" type="button" class="layui-btn">开始语音对讲</button>
+                <button id="record" type="button" class="layui-btn">开始录像</button>
+                <button id="captureJPEGPicture" type="button" class="layui-btn">实时抓图</button>
+                <button id="captureJPEGPicture1" type="button" class="layui-btn">存储抓图</button>
+            </div>
+        </div>
+    </div>
+    <div class="layui-col-md4">
+
+        <div id="imgcontainer" style="padding: 10px 10px;">图片</div>
+
+    </div>
+</div>
+
+</div>
+</body>
+<script th:inline="javascript">
+    layui.use(['form', 'layer'], function () {
+        var $ = layui.$;
+        // var form = layui.form;
+        // var layer = layui.layer;
+
+        $(document).ready(function () {
+            $.ajax({
+                url: "../login",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        });
+        //云台上下左右
+        $("#up").mousedown(function () {
+            $.ajax({
+                url: "../up?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#up").mouseup(function () {
+            $.ajax({
+                url: "../up?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#down").mousedown(function () {
+            $.ajax({
+                url: "../down?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#down").mouseup(function () {
+            $.ajax({
+                url: "../down?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#left").mousedown(function () {
+            $.ajax({
+                url: "../left?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#left").mouseup(function () {
+            $.ajax({
+                url: "../left?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#right").mousedown(function () {
+            $.ajax({
+                url: "../right?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#right").mouseup(function () {
+            $.ajax({
+                url: "../right?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        //变倍
+        $("#controlZoomIn").mousedown(function () {
+            $.ajax({
+                url: "../controlZoomIn?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlZoomIn").mouseup(function () {
+            $.ajax({
+                url: "../controlZoomIn?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlZoomOut").mousedown(function () {
+            $.ajax({
+                url: "../controlZoomOut?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlZoomOut").mouseup(function () {
+            $.ajax({
+                url: "../controlZoomOut?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        //变焦
+        $("#controlFocusNear").mousedown(function () {
+            $.ajax({
+                url: "../controlFocusNear?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlFocusNear").mouseup(function () {
+            $.ajax({
+                url: "../controlFocusNear?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlFocusFar").mousedown(function () {
+            $.ajax({
+                url: "../controlFocusFar?channelNum=1&speed=8&enable=true",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#controlFocusFar").mouseup(function () {
+            $.ajax({
+                url: "../controlFocusFar?channelNum=1&speed=8&enable=false",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+
+        $("#setPreset").click(function () {
+            $.ajax({
+                url: "../setPreset?channelNum=1&presetIndex=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#gotoPreset").click(function () {
+            $.ajax({
+                url: "../gotoPreset?channelNum=1&presetIndex=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#getPTZ").click(function () {
+            $.ajax({
+                url: "../getPTZ?channelNum=1",
+                type: "get",
+                success: function (datas) {
+                    console.log(datas);
+                    $("#p").val(datas.data.wpanPos);
+                    $("#t").val(datas.data.wtiltPos);
+                    $("#z").val(datas.data.wzoomPos);
+                }
+            })
+        })
+        $("#setPTZ").click(function () {
+            var p = $('#p').val() * 10;
+            var t = $('#t').val() * 10;
+            var z = $('#z').val() * 10;
+            console.log("../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z)
+            $.ajax({
+                url: "../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z,
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#getZeroPTZ").click(function () {
+            $.ajax({
+                url: "../getZeroPTZ?channelNum=1",
+                type: "get",
+                success: function (datas) {
+                    console.log(datas);
+                }
+            })
+        })
+        $("#setZeroPTZ").click(function () {
+            $.ajax({
+                url: "../setZeroPTZ?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        $("#WiperPwron").click(function () {
+            $.ajax({
+                url: "../enableWiperPwron?channelNum=1&speed=4",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        var defogflag = true;
+        $("#Defogcfg").click(function () {
+
+            if (defogflag) {
+                $(this).text("关闭透雾");
+                defogflag = false;
+                $.ajax({
+                    url: "../enableDefogcfg?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("开启透雾");
+                defogflag = true;
+                $.ajax({
+                    url: "../disableDefogcfg?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+
+        })
+        var infrareflag = true;
+        $("#Infrarecfg").click(function () {
+
+            if (infrareflag) {
+                $(this).text("关闭红外");
+                infrareflag = false;
+                $.ajax({
+                    url: "../enableInfrarecfg?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("开启红外");
+                infrareflag = true;
+                $.ajax({
+                    url: "../disableInfrarecfg?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+
+
+        })
+        var focusModeflag = true;
+        $("#FocusMode").click(function () {
+            if (focusModeflag) {
+                $(this).text("自动聚焦");
+                focusModeflag = false;
+                $.ajax({
+                    url: "../enableFocusMode?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("手动聚焦");
+                focusModeflag = true;
+                $.ajax({
+                    url: "../disableFocusMode?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        })
+        var heateRpwronflag = true;
+        $("#HeateRpwron").click(function () {
+            if (heateRpwronflag) {
+                $(this).text("关闭云台加热");
+                heateRpwronflag = false;
+                $.ajax({
+                    url: "../enableHeateRpwron?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("开启云台加热");
+                heateRpwronflag = true;
+                $.ajax({
+                    url: "../disableHeateRpwron?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        })
+        var CameraDeicingflag = true;
+        $("#CameraDeicing").click(function () {
+            if (CameraDeicingflag) {
+                $(this).text("关闭镜头加热");
+                CameraDeicingflag = false;
+                $.ajax({
+                    url: "../enableCameraDeicing?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("开启镜头加热");
+                CameraDeicingflag = true;
+                $.ajax({
+                    url: "../disableCameraDeicing?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        })
+        $("#captureJPEGPicture").click(function () {
+            var url = "http://localhost:8080/captureJPEGPicture";
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = "blob";
+            xhr.onload = function () {
+                if (this.status == 200) {
+                    var blob = this.response;
+                    var img = document.createElement("img");
+                    img.style.width = "500px";
+                    img.style.height = "400px";
+                    img.onload = function (e) {
+                        window.URL.revokeObjectURL(img.src);
+                    };
+                    img.src = window.URL.createObjectURL(blob);
+                    $("#imgcontainer").html(img);
+                }
+            }
+            xhr.send();
+        })
+        $("#captureJPEGPicture1").click(function () {
+            $.ajax({
+                url: "../captureJPEGPicture1?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        })
+        var recordflag = true;
+        $("#record").click(function () {
+            if (recordflag) {
+                $(this).text("停止录像");
+                recordflag = false;
+                $.ajax({
+                    url: "../recordStart?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $(this).text("开始录像");
+                recordflag = true;
+                $.ajax({
+                    url: "../recordStop?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        })
+        var voiceflag = true;
+        $("#voice").click(function () {
+            if (voiceflag) {
+                $("#voice").text("停止语音对讲");
+
+                voiceflag = false;
+                $.ajax({
+                    url: "../voiceStart?channelNum=1",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            } else {
+                $("#voice").text("开始语音对讲");
+                voiceflag = true;
+                $.ajax({
+                    url: "../voiceStop",
+                    type: "get",
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        })
+    });
+</script>
+</html>

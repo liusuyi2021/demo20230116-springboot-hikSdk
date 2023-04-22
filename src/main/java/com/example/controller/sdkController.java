@@ -39,15 +39,16 @@ public class sdkController {
         sdk.initHCNetSDK();
     }
 
-
     @RequestMapping("/login")
     public String loginHtml(){
         return "login";
     }
+
     @RequestMapping("/index")
-    public String index(){
+    public String indexHtml(){
         return "index";
     }
+
     @GetMapping("/loginCamera")
     private @ResponseBody
     AjaxResult loginIndex() {

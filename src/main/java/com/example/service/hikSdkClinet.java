@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 
 /**
@@ -54,6 +55,10 @@ public interface hikSdkClinet {
 
     //聚焦模式
     boolean controlFocusMode(Integer userId, Integer channelNum, boolean enable);
+    //设置聚焦值
+    public boolean setFocusPos(Integer userId, Integer channelNum,Integer dwFocusPos);
+    //获取聚焦值
+    public Map getFocusPos(Integer userId, Integer channelNum);
 
     //云台加热
     boolean controlPTHeateRpwron(Integer userId, Integer channelNum, boolean enable);

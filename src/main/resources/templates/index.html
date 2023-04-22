@@ -1,103 +1,590 @@
 <!DOCTYPE html>
-<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>测试 - layui</title>
-  <link rel="stylesheet" th:href="@{/js/layui/css/layui.css}"/>
-  <script th:src="@{/js/layui/layui.js}"></script>
+    <meta charset="UTF-8">
+    <title>测试页</title>
+    <script type="text/javascript" th:src="@{/js/jquery-3.6.4.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <script th:src="@{/js/bootstrap.js}"></script>
+    <style type="text/css">
+        #imgcontainer {
+            width: 550px;
+            height: 450px;
+            border: 5px solid #252831;
+        }
+        .top-buffer { margin-top:10px; }
+    </style>
 </head>
 <body>
-
-<div class="layui-container">
-  <div class="layui-progress" style="margin: 15px 0 30px;">
-    <div class="layui-progress-bar" lay-percent="100%"></div>
-  </div>
-  
-  
-  <div class="layui-btn-container">
-    <button class="layui-btn" test-active="test-form">一个按钮</button>
-    <button class="layui-btn layui-btn-normal" id="test2">当前日期</button>
-  </div>
-  
-  <blockquote class="layui-elem-quote" style="margin-top: 30px;">
-    <div class="layui-text">
-      <ul>
-        <li>你当前预览的是：<span>layui-v<span id="version"></span></span></li>
-        <li>layui 是一套开源的 Web UI（界面）组件库。这是一个极其简洁的演示页面</li>
-      </ul>
-    </div>
-  </blockquote>
+<!--如果没有登录-->
+<div sec:authorize="!isAuthenticated()">
+    <a class="item" th:href="@{/loginHtml}">
+        <i class="address card icon"></i> 登录
+    </a>
 </div>
-
-<script th:inline="javascript">
-layui.use(function(){
-  var layer = layui.layer
-  ,form = layui.form
-  ,laypage = layui.laypage
-  ,element = layui.element
-  ,laydate = layui.laydate
-  ,util = layui.util;
-  
-  //欢迎信息
-  layer.msg('Hello World');
-  
-  //输出版本号
-  lay('#version').html(layui.v);
-  
-  //日期
-  laydate.render({
-    elem: '#test2'
-    ,value: new Date()
-    ,isInitValue: true
-  });
-  
-  //触发事件
-  util.on('test-active', {
-    'test-form': function(){
-      layer.open({
-        type: 1
-        ,resize: false
-        ,shadeClose: true
-        ,area: '350px'
-        ,title: 'layer + form'
-        ,content: ['<ul class="layui-form layui-form-pane" style="margin: 15px;">'
-          ,'<li class="layui-form-item">'
-            ,'<label class="layui-form-label">输入框</label>'
-            ,'<div class="layui-input-block">'
-              ,'<input class="layui-input" lay-verify="required" name="field1">'
-            ,'</div>'
-          ,'</li>'
-          ,'<li class="layui-form-item">'
-            ,'<label class="layui-form-label">选择框</label>'
-            ,'<div class="layui-input-block">'
-              ,'<select name="field2">'
-                ,'<option value="A">A</option>'
-                ,'<option value="B">B</option>'
-              ,'<select>'
-            ,'</div>'
-          ,'</li>'
-          ,'<li class="layui-form-item" style="text-align:center;">'
-            ,'<button type="submit" lay-submit lay-filter="*" class="layui-btn">提交</button>'
-          ,'</li>'
-        ,'</ul>'].join('')
-        ,success: function(layero, index){
-          layero.find('.layui-layer-content').css('overflow', 'visible');
-          
-          form.render().on('submit(*)', function(data){
-            var field = data.field;
-            
-            // 显示填写的表单
-            layer.msg(util.escape(JSON.stringify(field)), {
-              icon: 1
-            });
-            //layer.close(index); //关闭层
-          });
-        }
-      });
-    }
-  });
-});
-</script>
+<div sec:authorize="isAuthenticated()">
+    <!--如果登录则显示 用户名 角色-->
+    <a class="item">
+        用户名：<span sec:authentication="name"></span>
+        角色：<span sec:authentication="authorities"></span>
+    </a>
+</div>
+<div sec:authorize="isAuthenticated()">
+    <!--如果登录则显示 注销-->
+    <a class="item" th:href="@{/logout}">
+        <i class="sign-out icon"></i> 注销
+    </a>
+</div>
+<div class="container">
+    <div class="col-md-8">
+        <div class="row ">
+            <div class="col-md-1 col-md-offset-1">
+                <button id="up" type="button" class="btn btn-primary">上</button>
+            </div>
+            <div class="col-md-4 col-md-offset-3">
+                <div class="btn-group" role="group">
+                    <button id="controlZoomIn" type="button" class="btn btn-primary">调焦-</button>
+                    <button id="controlZoomOut" type="button" class="btn btn-primary">调焦+</button>
+                </div>
+            </div>
+        </div>
+        <div class="row ">
+            <div class="col-md-1">
+                <button id="left" type="button" class="btn btn-primary">左</button>
+            </div>
+            <div class="col-md-1 col-md-offset-1">
+                <button id="right" type="button" class="btn btn-primary">右</button>
+            </div>
+            <div class="col-md-4 col-md-offset-2">
+                <div class="btn-group" role="group">
+                    <button id="controlFocusNear" type="button" class="btn btn-primary">聚焦-</button>
+                    <button id="controlFocusFar" type="button" class="btn btn-primary">聚焦+</button>
+                </div>
+            </div>
+        </div>
+        <div class="row ">
+            <div class="col-md-1 col-md-offset-1">
+                <button id="down" type="button" class="btn btn-primary">下</button>
+            </div>
+        </div>
+        <div class="row top-buffer">
+            <div class="input-group">
+                <span class="input-group-addon">P值：</span>
+                <input id="p" class="form-control" placeholder="请输入P值"/>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">T值：</span>
+                <input id="t" class="form-control" placeholder="请输入T值"/>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">Z值：</span>
+                <input id="z" class="form-control" placeholder="请输入Z值"/>
+            </div>
+        </div>
+        <div class="row top-buffer">
+            <div class="btn-group" role="group">
+                <button id="getPTZ" type="button" class="btn btn-default">获取ptz</button>
+                <button id="setPTZ" type="button" class="btn btn-default">设置ptz</button>
+                <button id="setPreset" type="button" class="btn btn-default">设预置点</button>
+                <button id="gotoPreset" type="button" class="btn btn-default">调预置点</button>
+                <button id="getZeroPTZ" type="button" class="btn btn-default">调用零方位角</button>
+                <button id="setZeroPTZ" type="button" class="btn btn-default">设置零方位角</button>
+            </div>
+        </div>
+        <div class="row top-buffer">
+            <div class="btn-group" role="group">
+                <button id="FocusMode" type="button" class="btn btn-default">手动聚焦</button>
+                <div id="focusDiv" class="input-group" >
+                    <span class="input-group-addon">聚焦值：</span>
+                    <input id="focus" class="form-control" placeholder="聚焦值"/>
+                </div>
+                <button id="getFocusPos" type="button" class="btn btn-default">获取聚焦值</button>
+                <button id="setFocusPos" type="button" class="btn btn-default">设置聚焦值</button>
+              </div>
+        </div>
+        <div class="row top-buffer">
+            <div class="btn-group" role="group">
+                <button id="WiperPwron" type="button" class="btn btn-default">开启雨刷</button>
+                <button id="Defogcfg" type="button" class="btn btn-default">开启透雾</button>
+                <button id="Infrarecfg" type="button" class="btn btn-default">开启红外</button>
+                <button id="HeateRpwron" type="button" class="btn btn-default">开启云台加热</button>
+                <button id="CameraDeicing" type="button" class="btn btn-default">开启镜头加热</button>
+            </div>
+        </div>
+        <div class="row top-buffer">
+            <div class="btn-group" role="group">
+                <button id="voice" type="button" class="btn btn-default">开始语音对讲</button>
+                <button id="record" type="button" class="btn btn-default">开始录像</button>
+                <button id="captureJPEGPicture" type="button" class="btn btn-default">实时抓图</button>
+                <button id="captureJPEGPicture1" type="button" class="btn btn-default">存储抓图</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="thumbnail" id="imgcontainer" style="padding: 5px 5px;">图片</div>
+    </div>
+</div>
 </body>
+<script th:inline="javascript">
+    $(document).ready(function () {
+        $.ajax({
+            url: "../loginCamera",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    });
+    //云台上下左右
+    $("#up").mousedown(function () {
+        $.ajax({
+            url: "../up?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#up").mouseup(function () {
+        $.ajax({
+            url: "../up?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#down").mousedown(function () {
+        $.ajax({
+            url: "../down?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#down").mouseup(function () {
+        $.ajax({
+            url: "../down?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#left").mousedown(function () {
+        $.ajax({
+            url: "../left?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#left").mouseup(function () {
+        $.ajax({
+            url: "../left?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#right").mousedown(function () {
+        $.ajax({
+            url: "../right?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#right").mouseup(function () {
+        $.ajax({
+            url: "../right?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    //变倍
+    $("#controlZoomIn").mousedown(function () {
+        $.ajax({
+            url: "../controlZoomIn?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomIn").mouseup(function () {
+        $.ajax({
+            url: "../controlZoomIn?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomOut").mousedown(function () {
+        $.ajax({
+            url: "../controlZoomOut?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlZoomOut").mouseup(function () {
+        $.ajax({
+            url: "../controlZoomOut?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    //变焦
+    $("#controlFocusNear").mousedown(function () {
+        $.ajax({
+            url: "../controlFocusNear?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusNear").mouseup(function () {
+        $.ajax({
+            url: "../controlFocusNear?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusFar").mousedown(function () {
+        $.ajax({
+            url: "../controlFocusFar?channelNum=1&speed=8&enable=true",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#controlFocusFar").mouseup(function () {
+        $.ajax({
+            url: "../controlFocusFar?channelNum=1&speed=8&enable=false",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+
+    $("#setPreset").click(function () {
+        $.ajax({
+            url: "../setPreset?channelNum=1&presetIndex=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#gotoPreset").click(function () {
+        $.ajax({
+            url: "../gotoPreset?channelNum=1&presetIndex=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#getPTZ").click(function () {
+        $.ajax({
+            url: "../getPTZ?channelNum=1",
+            type: "get",
+            success: function (datas) {
+                console.log(datas);
+                $("#p").val(datas.data.wpanPos);
+                $("#t").val(datas.data.wtiltPos);
+                $("#z").val(datas.data.wzoomPos);
+            }
+        })
+    })
+    $("#setPTZ").click(function () {
+        var p = $('#p').val() * 10;
+        var t = $('#t').val() * 10;
+        var z = $('#z').val() * 10;
+        console.log("../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z)
+        $.ajax({
+            url: "../setPTZ?channelNum=1&p=" + p + "&t=" + t + "&z=" + z,
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#getZeroPTZ").click(function () {
+        $.ajax({
+            url: "../getZeroPTZ?channelNum=1",
+            type: "get",
+            success: function (datas) {
+                console.log(datas);
+            }
+        })
+    })
+    $("#setZeroPTZ").click(function () {
+        $.ajax({
+            url: "../setZeroPTZ?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    $("#WiperPwron").click(function () {
+        $.ajax({
+            url: "../enableWiperPwron?channelNum=1&speed=4",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    var defogflag = true;
+    $("#Defogcfg").click(function () {
+
+        if (defogflag) {
+            $(this).text("关闭透雾");
+            defogflag = false;
+            $.ajax({
+                url: "../enableDefogcfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("开启透雾");
+            defogflag = true;
+            $.ajax({
+                url: "../disableDefogcfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
+    })
+    var infrareflag = true;
+    $("#Infrarecfg").click(function () {
+
+        if (infrareflag) {
+            $(this).text("关闭红外");
+            infrareflag = false;
+            $.ajax({
+                url: "../enableInfrarecfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("开启红外");
+            infrareflag = true;
+            $.ajax({
+                url: "../disableInfrarecfg?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
+
+    })
+    var focusModeflag = true;
+    $("#FocusMode").click(function () {
+        if (focusModeflag) {
+            $(this).text("自动聚焦");
+            $("#focusDiv").style.visibility="hidden";
+            focusModeflag = false;
+            $.ajax({
+                url: "../enableFocusMode?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("手动聚焦");
+            focusModeflag = true;
+            $("#focusDiv").style.visibility="show";
+            $.ajax({
+                url: "../disableFocusMode?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
+    $("#getFocusPos").click(function () {
+            $(this).text("获取聚焦值");
+            $.ajax({
+                url: "../getFocusPos?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                    $("#focus").val(data.data.dwFocusPos);
+                }
+            })
+    })
+    $("#setFocusPos").click(function () {
+            $(this).text("设置聚焦值");
+            var f = $('#focus').val();
+            $.ajax({
+                url: "../setFocusPos?channelNum=1&dwFocusPos=" + f,
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+
+    })
+    var heateRpwronflag = true;
+    $("#HeateRpwron").click(function () {
+        if (heateRpwronflag) {
+            $(this).text("关闭云台加热");
+            heateRpwronflag = false;
+            $.ajax({
+                url: "../enableHeateRpwron?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("开启云台加热");
+            heateRpwronflag = true;
+            $.ajax({
+                url: "../disableHeateRpwron?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
+    var CameraDeicingflag = true;
+    $("#CameraDeicing").click(function () {
+        if (CameraDeicingflag) {
+            $(this).text("关闭镜头加热");
+            CameraDeicingflag = false;
+            $.ajax({
+                url: "../enableCameraDeicing?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("开启镜头加热");
+            CameraDeicingflag = true;
+            $.ajax({
+                url: "../disableCameraDeicing?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
+    $("#captureJPEGPicture").click(function () {
+        var url = "http://localhost:8080/captureJPEGPicture";
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = "blob";
+        xhr.onload = function () {
+            if (this.status == 200) {
+                var blob = this.response;
+                var img = document.createElement("img");
+                img.style.height = "430px";
+                img.style.width = "100%";
+                img.src = window.URL.createObjectURL(blob);
+                $("#imgcontainer").html(img)
+                // img.style.width = "100%";
+                // // img.style.height = "400px";
+                //  img.onload = function (e) {
+                //      window.URL.revokeObjectURL(img.src);
+                //  };
+                //  img.src = window.URL.createObjectURL(blob);
+                //  $("#imgcontainer").html(img);
+            }
+        }
+        xhr.send();
+    })
+    $("#captureJPEGPicture1").click(function () {
+        $.ajax({
+            url: "../captureJPEGPicture1?channelNum=1",
+            type: "get",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+    var recordflag = true;
+    $("#record").click(function () {
+        if (recordflag) {
+            $(this).text("停止录像");
+            recordflag = false;
+            $.ajax({
+                url: "../recordStart?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $(this).text("开始录像");
+            recordflag = true;
+            $.ajax({
+                url: "../recordStop?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
+    var voiceflag = true;
+    $("#voice").click(function () {
+        if (voiceflag) {
+            $("#voice").text("停止语音对讲");
+
+            voiceflag = false;
+            $.ajax({
+                url: "../voiceStart?channelNum=1",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        } else {
+            $("#voice").text("开始语音对讲");
+            voiceflag = true;
+            $.ajax({
+                url: "../voiceStop",
+                type: "get",
+                success: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+    })
+</script>
 </html>

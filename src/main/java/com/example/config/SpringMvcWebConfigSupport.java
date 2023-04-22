@@ -21,7 +21,7 @@ public class SpringMvcWebConfigSupport implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("index");//前拼templates，后拼.html
-        registry.addViewController("/index.html").setViewName("index");//浏览器发送/请求来到login.html页面，不用写controller控制层的请求方法了
+        registry.addViewController("/test.html").setViewName("index");//浏览器发送/请求来到login.html页面，不用写controller控制层的请求方法了
     }
 
     /**

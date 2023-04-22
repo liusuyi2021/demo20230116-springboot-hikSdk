@@ -560,6 +560,48 @@ public class hikSdkClinetImpl implements hikSdkClinet {
     }
 
     /**
+     * 设置聚焦值
+     *
+     */
+    @Override
+    public boolean setFocusPos(Integer userId, Integer channelNum, Integer dwFocusPos) {
+
+        NET_DVR_FOCUSMODE_CFG focusmodeCfg = new NET_DVR_FOCUSMODE_CFG();
+        Pointer point = focusmodeCfg.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        focusmodeCfg.dwFocusPos = dwFocusPos;
+        boolean bool = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_FOCUSMODECFG, channelNum, point, focusmodeCfg.size(), ibrBytesReturned);
+        if (!bool) {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            log.info("设置聚焦值失败,请稍后重试" + code);
+        }
+        return bool;
+    }
+
+    /**
+     * 获取聚焦值
+     *
+     */
+    @Override
+    public Map<String, Object> getFocusPos(Integer userId, Integer channelNum) {
+
+        NET_DVR_FOCUSMODE_CFG focusmodeCfg = new NET_DVR_FOCUSMODE_CFG();
+        Pointer point = focusmodeCfg.getPointer();
+        IntByReference ibrBytesReturned = new IntByReference(0);
+        boolean bool = hCNetSDK.NET_DVR_GetDVRConfig(userId, NET_DVR_GET_FOCUSMODECFG, channelNum, point, focusmodeCfg.size(), ibrBytesReturned);
+        if (bool) {
+            focusmodeCfg.read();
+            Map<String, Object> map = new HashMap<>();
+            map.put("dwFocusPos", focusmodeCfg.dwRelativeFocusPos);
+            return map;
+        } else {
+            int code = hCNetSDK.NET_DVR_GetLastError();
+            log.info("获取聚焦值失败,请稍后重试" + code);
+            return new HashMap<>();
+        }
+    }
+
+    /**
      * @描述 云台加热开关
      * @参数 [userId, channelNum, enable]
      * @返回值 boolean

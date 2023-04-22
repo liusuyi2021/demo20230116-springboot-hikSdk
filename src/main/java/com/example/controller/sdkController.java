@@ -1,11 +1,13 @@
 package com.example.controller;
 
+import com.example.core.domain.AjaxResult;
 import com.example.domian.DVRLogin;
 import com.example.domian.PTZ;
 import com.example.service.hikSdkClinetImpl;
-import com.example.util.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -37,293 +39,314 @@ public class sdkController {
         sdk.initHCNetSDK();
     }
 
-    @RequestMapping("/")
-    String index() {
-        return "test";
-    }
 
     @RequestMapping("/login")
+    public String loginHtml(){
+        return "login";
+    }
+    @RequestMapping("/index")
+    public String index(){
+        return "index";
+    }
+    @GetMapping("/loginCamera")
     private @ResponseBody
-    CommonResult<String> loginIndex() {
+    AjaxResult loginIndex() {
         UserId = sdk.login(login);
         log.info("相机登录成功：" + UserId);
-        return CommonResult.success("相机登录成功：" + UserId);
+        return AjaxResult.success("相机登录成功：" + UserId);
     }
 
-    @RequestMapping("/up")
+    @GetMapping("/up")
     private @ResponseBody
-    CommonResult<String> up(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult up(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlUp(UserId, channelNum, speed, enable);
-        return CommonResult.success("up");
+        return AjaxResult.success("up");
     }
-    @RequestMapping("/down")
+    @GetMapping("/down")
     private @ResponseBody
-    CommonResult<String> down(Integer channelNum, Integer speed,boolean enable) {
+    AjaxResult down(Integer channelNum, Integer speed,boolean enable) {
         sdk.controlDown(UserId, channelNum, speed, enable);
-        return CommonResult.success("down");
+        return AjaxResult.success("down");
     }
 
-    @RequestMapping("/left")
+    @GetMapping("/left")
     private @ResponseBody
-    CommonResult<String> left(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult left(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlLeft(UserId, channelNum, speed, enable);
-        return CommonResult.success("left");
+        return AjaxResult.success("left");
     }
 
-    @RequestMapping("/right")
+    @GetMapping("/right")
     private @ResponseBody
-    CommonResult<String> right(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult right(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlRight(UserId, channelNum, speed, enable);
-        return CommonResult.success("right");
+        return AjaxResult.success("right");
     }
 
-    @RequestMapping("/controlZoomIn")
+    @GetMapping("/controlZoomIn")
     private @ResponseBody
-    CommonResult<String> controlZoomIn(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult controlZoomIn(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlZoomIn(UserId, channelNum, speed, enable);
-        return CommonResult.success("controlZoomIn");
+        return AjaxResult.success("controlZoomIn");
     }
 
-    @RequestMapping("/controlZoomOut")
+    @GetMapping("/controlZoomOut")
     private @ResponseBody
-    CommonResult<String> controlZoomOut(Integer channelNum, Integer speed,boolean enable) {
+    AjaxResult controlZoomOut(Integer channelNum, Integer speed,boolean enable) {
         sdk.controlZoomOut(UserId, channelNum, speed, enable);
-        return CommonResult.success("ZoomOut");
+        return AjaxResult.success("ZoomOut");
     }
 
-    @RequestMapping("/controlFocusNear")
+    @GetMapping("/controlFocusNear")
     private @ResponseBody
-    CommonResult<String> controlFocusNear(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult controlFocusNear(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlFocusNear(UserId, channelNum, speed, enable);
-        return CommonResult.success("FocusNear");
+        return AjaxResult.success("FocusNear");
     }
 
-    @RequestMapping("/controlFocusFar")
+    @GetMapping("/controlFocusFar")
     private @ResponseBody
-    CommonResult<String> controlFocusFar(Integer channelNum, Integer speed,boolean enable)  {
+    AjaxResult controlFocusFar(Integer channelNum, Integer speed,boolean enable)  {
         sdk.controlFocusFar(UserId, channelNum, speed, enable);
-        return CommonResult.success("FocusFar");
+        return AjaxResult.success("FocusFar");
     }
 
-    @RequestMapping("/gotoPreset")
+    @GetMapping("/gotoPreset")
     private @ResponseBody
-    CommonResult<String> gotoPreset(Integer channelNum, Integer presetIndex) {
+    AjaxResult gotoPreset(Integer channelNum, Integer presetIndex) {
         boolean b = sdk.gotoPreset(UserId, channelNum, presetIndex);
         if (b) {
-            return CommonResult.success("转到预置点" + presetIndex + "成功！");
+            return AjaxResult.success("转到预置点" + presetIndex + "成功！");
         } else {
-            return CommonResult.success("转到预置点" + presetIndex + "失败！");
+            return AjaxResult.success("转到预置点" + presetIndex + "失败！");
         }
     }
 
-    @RequestMapping("/setPreset")
+    @GetMapping("/setPreset")
     private @ResponseBody
-    CommonResult<String> setPreset(Integer channelNum, Integer presetIndex) {
+    AjaxResult setPreset(Integer channelNum, Integer presetIndex) {
         boolean b = sdk.setPreset(UserId, channelNum, presetIndex);
         if (b) {
-            return CommonResult.success("设置预置点" + presetIndex + "成功！");
+            return AjaxResult.success("设置预置点" + presetIndex + "成功！");
         } else {
-            return CommonResult.success("设置预置点" + presetIndex + "失败！");
+            return AjaxResult.success("设置预置点" + presetIndex + "失败！");
         }
     }
 
-    @RequestMapping("/getPTZ")
+    @GetMapping("/getPTZ")
     private @ResponseBody
-    CommonResult<PTZ> GetPTZ(Integer channelNum) {
+    AjaxResult GetPTZ(Integer channelNum) {
         PTZ ptz = sdk.getPtz(UserId, channelNum);
         Map<String, String> map = new HashMap<>();
         map.put("p", ptz.getWPanPos());
         map.put("t", ptz.getWTiltPos());
         map.put("z", ptz.getWZoomPos());
-        return CommonResult.success(ptz);
+        return AjaxResult.success(ptz);
     }
 
-    @RequestMapping("/setPTZ")
+    @GetMapping("/setPTZ")
     private @ResponseBody
-    CommonResult<PTZ> SetPTZ(Integer channelNum, String p, String t, String z) {
+    AjaxResult SetPTZ(Integer channelNum, String p, String t, String z) {
         PTZ ptz = new PTZ();
         ptz.setWPanPos(p);
         ptz.setWTiltPos(t);
         ptz.setWZoomPos(z);
         boolean b = sdk.setPtz(UserId, channelNum, ptz);
         if (b) {
-            return CommonResult.success(ptz);
+            return AjaxResult.success(ptz);
         } else {
-            return CommonResult.failed("设置ptz失败！");
+            return AjaxResult.error("设置ptz失败！");
         }
     }
 
-    @RequestMapping("/enableWiperPwron")
+    @GetMapping("/enableWiperPwron")
     private @ResponseBody
-    CommonResult<String> controlWiperPwron(Integer channelNum, Integer speed) {
+    AjaxResult controlWiperPwron(Integer channelNum, Integer speed) {
         boolean b = sdk.controlWiperPwron(UserId, channelNum, speed, true);
         if (b) {
-            return CommonResult.success("开启雨刷成功！");
+            return AjaxResult.success("开启雨刷成功！");
         } else {
-            return CommonResult.failed("开启雨刷失败！");
+            return AjaxResult.error("开启雨刷失败！");
         }
     }
 
-    @RequestMapping("/enableDefogcfg")
+    @GetMapping("/enableDefogcfg")
     private @ResponseBody
-    CommonResult<String> EnableDefogcfg(Integer channelNum) {
+    AjaxResult EnableDefogcfg(Integer channelNum) {
         boolean b = sdk.controlDefogcfg(UserId, channelNum, true);
         if (b) {
-            return CommonResult.success("开启透雾成功！");
+            return AjaxResult.success("开启透雾成功！");
         } else {
-            return CommonResult.failed("开启透雾失败！");
+            return AjaxResult.error("开启透雾失败！");
         }
     }
 
-    @RequestMapping("/disableDefogcfg")
+    @GetMapping("/disableDefogcfg")
     private @ResponseBody
-    CommonResult<String> DisableDefogcfg(Integer channelNum) {
+    AjaxResult DisableDefogcfg(Integer channelNum) {
         boolean b = sdk.controlDefogcfg(UserId, channelNum, false);
         if (b) {
-            return CommonResult.success("关闭透雾成功！");
+            return AjaxResult.success("关闭透雾成功！");
         } else {
-            return CommonResult.failed("关闭透雾失败！");
+            return AjaxResult.error("关闭透雾失败！");
         }
     }
 
-    @RequestMapping("/enableInfrarecfg")
+    @GetMapping("/enableInfrarecfg")
     private @ResponseBody
-    CommonResult<String> enableInfrarecfg(Integer channelNum) {
+    AjaxResult enableInfrarecfg(Integer channelNum) {
         boolean b = sdk.controlInfrarecfg(UserId, channelNum, true);
         if (b) {
-            return CommonResult.success("开启红外成功！");
+            return AjaxResult.success("开启红外成功！");
         } else {
-            return CommonResult.failed("开启红外失败！");
+            return AjaxResult.error("开启红外失败！");
         }
     }
 
-    @RequestMapping("/disableInfrarecfg")
+    @GetMapping("/disableInfrarecfg")
     private @ResponseBody
-    CommonResult<String> disableInfrarecfg(Integer channelNum) {
+    AjaxResult disableInfrarecfg(Integer channelNum) {
         boolean b = sdk.controlInfrarecfg(UserId, channelNum, false);
         if (b) {
-            return CommonResult.success("关闭红外成功！");
+            return AjaxResult.success("关闭红外成功！");
         } else {
-            return CommonResult.failed("关闭红外失败！");
+            return AjaxResult.error("关闭红外失败！");
         }
     }
 
-    @RequestMapping("/enableFocusMode")
+    @GetMapping("/enableFocusMode")
     private @ResponseBody
-    CommonResult<String> enableFocusMode(Integer channelNum) {
+    AjaxResult enableFocusMode(Integer channelNum) {
         boolean b = sdk.controlFocusMode(UserId, channelNum, true);
         if (b) {
-            return CommonResult.success("开启手动聚焦成功！");
+            return AjaxResult.success("开启手动聚焦成功！");
         } else {
-            return CommonResult.failed("开启手动聚焦失败！");
+            return AjaxResult.error("开启手动聚焦失败！");
         }
     }
 
-    @RequestMapping("/disableFocusMode")
+    @GetMapping("/getFocusPos")
     private @ResponseBody
-    CommonResult<String> disableFocusMode(Integer channelNum) {
+    AjaxResult getFocusPos(Integer channelNum) {
+        Map<String, Object> Map = sdk.getFocusPos(UserId, channelNum);
+        return AjaxResult.success("获取聚焦值",Map);
+    }
+
+    @GetMapping("/setFocusPos")
+    private @ResponseBody
+    AjaxResult setFocusPos(Integer channelNum, Integer dwFocusPos) {
+        boolean b = sdk.setFocusPos(UserId, channelNum, dwFocusPos);
+        if (b) {
+            return AjaxResult.success("设置聚焦值成功！");
+        } else {
+            return AjaxResult.success("设置聚焦值失败！");
+        }
+    }
+    @GetMapping("/disableFocusMode")
+    private @ResponseBody
+    AjaxResult disableFocusMode(Integer channelNum) {
         boolean b = sdk.controlFocusMode(UserId, channelNum, false);
         if (b) {
-            return CommonResult.success("开启自动聚焦成功！");
+            return AjaxResult.success("开启自动聚焦成功！");
         } else {
-            return CommonResult.failed("开启自动聚焦失败！");
+            return AjaxResult.error("开启自动聚焦失败！");
         }
     }
 
-    @RequestMapping("/enableHeateRpwron")
+    @GetMapping("/enableHeateRpwron")
     private @ResponseBody
-    CommonResult<String> enableHeateRpwron(Integer channelNum) {
+    AjaxResult enableHeateRpwron(Integer channelNum) {
         boolean b = sdk.controlPTHeateRpwron(UserId, channelNum, true);
         if (b) {
-            return CommonResult.success("开启云台加热成功！");
+            return AjaxResult.success("开启云台加热成功！");
         } else {
-            return CommonResult.failed("开启云台加热失败！");
+            return AjaxResult.error("开启云台加热失败！");
         }
     }
 
-    @RequestMapping("/disableHeateRpwron")
+    @GetMapping("/disableHeateRpwron")
     private @ResponseBody
-    CommonResult<String> disableHeateRpwron(Integer channelNum) {
+    AjaxResult disableHeateRpwron(Integer channelNum) {
         boolean b = sdk.controlPTHeateRpwron(UserId, channelNum, false);
         if (b) {
-            return CommonResult.success("关闭云台加热成功！");
+            return AjaxResult.success("关闭云台加热成功！");
         } else {
-            return CommonResult.failed("关闭云台加热失败！");
+            return AjaxResult.error("关闭云台加热失败！");
         }
     }
 
-    @RequestMapping("/enableCameraDeicing")
+    @GetMapping("/enableCameraDeicing")
     private @ResponseBody
-    CommonResult<String> enableCameraDeicing(Integer channelNum) {
+    AjaxResult enableCameraDeicing(Integer channelNum) {
         boolean b = sdk.controlCameraDeicing(UserId, channelNum, true);
         if (b) {
-            return CommonResult.success("开启镜头加热成功！");
+            return AjaxResult.success("开启镜头加热成功！");
         } else {
-            return CommonResult.failed("开启镜头加热失败！");
+            return AjaxResult.error("开启镜头加热失败！");
         }
     }
 
-    @RequestMapping("/disableCameraDeicing")
+    @GetMapping("/disableCameraDeicing")
     private @ResponseBody
-    CommonResult<String> disableCameraDeicing(Integer channelNum) {
+    AjaxResult disableCameraDeicing(Integer channelNum) {
         boolean b = sdk.controlCameraDeicing(UserId, channelNum, false);
         if (b) {
-            return CommonResult.success("关闭镜头加热成功！");
+            return AjaxResult.success("关闭镜头加热成功！");
         } else {
-            return CommonResult.failed("关闭镜头加热失败！");
+            return AjaxResult.error("关闭镜头加热失败！");
         }
     }
 
-    @RequestMapping("/captureJPEGPicture")
+    @GetMapping("/captureJPEGPicture")
     private @ResponseBody
     String captureJPEGPicture(HttpServletResponse response) {
         sdk.captureJPEGPicture(UserId, response);
         return "图片上传成功";
     }
 
-    @RequestMapping("/captureJPEGPicture1")
+    @GetMapping("/captureJPEGPicture1")
     private @ResponseBody
-    CommonResult<String> captureJPEGPicture1(Integer channelNum) {
+    AjaxResult captureJPEGPicture1(Integer channelNum) {
         String path = sdk.picCutCate(UserId, channelNum);
-        return CommonResult.success(path);
+        return AjaxResult.success(path);
     }
 
-    @RequestMapping("/recordStart")
+    @GetMapping("/recordStart")
     private @ResponseBody
-    CommonResult<String> recordStart(Integer channelNum) {
+    AjaxResult recordStart(Integer channelNum) {
         String path = sdk.record(UserId, channelNum, true);
-        return CommonResult.success("录像开始" + path);
+        return AjaxResult.success("录像开始" + path);
     }
 
-    @RequestMapping("/recordStop")
+    @GetMapping("/recordStop")
     private @ResponseBody
-    CommonResult<String> recordStop(Integer channelNum) {
+    AjaxResult recordStop(Integer channelNum) {
         String path = sdk.record(UserId, channelNum, false);
-        return CommonResult.success("录像结束" + path);
+        return AjaxResult.success("录像结束" + path);
     }
-    @RequestMapping("/voiceStart")
+    @GetMapping("/voiceStart")
     private @ResponseBody
-    CommonResult<String> voiceStart(Integer channelNum) {
+    AjaxResult voiceStart(Integer channelNum) {
         boolean res = sdk.startVoiceCom(UserId,channelNum);
-        return CommonResult.success("语音对讲开始" + res);
+        return AjaxResult.success("语音对讲开始" + res);
     }
-    @RequestMapping("/voiceStop")
+    @GetMapping("/voiceStop")
     private @ResponseBody
-    CommonResult<String> voiceStop() {
+    AjaxResult voiceStop() {
         boolean res = sdk.stopVoiceCom();
-        return CommonResult.success("语音对讲结束" + res);
+        return AjaxResult.success("语音对讲结束" + res);
     }
-    @RequestMapping("/getZeroPTZ")
+    @GetMapping("/getZeroPTZ")
     private @ResponseBody
-    CommonResult<Boolean> GetZeroPTZ(Integer channelNum) {
+    AjaxResult GetZeroPTZ(Integer channelNum) {
         boolean zeroPtz = sdk.getZeroPtz(UserId, channelNum);
-        return CommonResult.success(zeroPtz);
+        return AjaxResult.success(zeroPtz);
     }
 
-    @RequestMapping("/setZeroPTZ")
+    @GetMapping("/setZeroPTZ")
     private @ResponseBody
-    CommonResult<Boolean> SetZeroPTZ(Integer channelNum) {
+    AjaxResult SetZeroPTZ(Integer channelNum) {
         boolean zeroPtz = sdk.setZeroPtz(UserId, channelNum);
-        return CommonResult.success(zeroPtz);
+        return AjaxResult.success(zeroPtz);
     }
 }
